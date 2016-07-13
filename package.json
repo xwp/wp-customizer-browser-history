@@ -1,0 +1,20 @@
+{
+  "name": "customizer-browser-history",
+  "version": "0.1.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xwp/wp-customizer-browser-history.git"
+  },
+  "author": "Weston Ruter <weston@xwp.co>",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/xwp/wp-customizer-browser-history/issues"
+  },
+  "homepage": "https://github.com/xwp/wp-customizer-browser-history#readme",
+  "devDependencies": {
+    "eslint": "^3.0.1"
+  }
+}
