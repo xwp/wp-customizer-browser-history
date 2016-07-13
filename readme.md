@@ -9,6 +9,8 @@ Sync browser URL in Customizer with current preview URL and focused panels, sect
 **Tested up to:** 4.6-beta2  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
+[![Build Status](https://travis-ci.org/xwp/wp-customizer-browser-history.svg?branch=master)](https://travis-ci.org/xwp/wp-customizer-browser-history) 
+
 ## Description ##
 
 *This is a feature plugin intended to implement [#34923](https://core.trac.wordpress.org/ticket/28536): Add browser history and deep linking for navigation in Customizer preview*
