@@ -18,7 +18,7 @@ var CustomizerBookmarking = (function( api ) {
 	 * @returns {void}
 	 */
 	component.replaceState = _.debounce( function() {
-		var expandedPanel = '', expandedSection = '', expandedControl = '', urlParser, queryParams, queryString;
+		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, queryString;
 
 		api.panel.each( function( panel ) {
 			if ( panel.active() && panel.expanded() ) {
@@ -42,39 +42,40 @@ var CustomizerBookmarking = (function( api ) {
 
 		urlParser = document.createElement( 'a' );
 		urlParser.href = location.href;
-		queryParams = {};
+		oldQueryParams = {};
 		queryString = urlParser.search.substr( 1 );
 		if ( queryString ) {
 			_.each( queryString.split( '&' ), function( pair ) {
 				var parts = pair.split( '=', 2 );
-				queryParams[ decodeURIComponent( parts[0] ) ] = decodeURIComponent( parts[1] || '' );
+				if ( parts[0] && parts[1] ) {
+					oldQueryParams[ decodeURIComponent( parts[0] ) ] = decodeURIComponent( parts[1] );
+				}
 			} );
 		}
 
-		queryParams.url = api.previewer.previewUrl.get();
-		if ( component.expandedPanel.get() ) {
-			queryParams['autofocus[panel]'] = component.expandedPanel.get();
-		} else {
-			delete queryParams['autofocus[panel]'];
-		}
-		if ( component.expandedSection.get() ) {
-			queryParams['autofocus[section]'] = component.expandedSection.get();
-		} else {
-			delete queryParams['autofocus[section]'];
-		}
-		if ( component.expandedControl.get() ) {
-			queryParams['autofocus[control]'] = component.expandedControl.get();
-		} else {
-			delete queryParams['autofocus[control]'];
-		}
+		newQueryParams = {};
+		values = {
+			url: api.previewer.previewUrl,
+			'autofocus[panel]': component.expandedPanel,
+			'autofocus[section]': component.expandedSection,
+			'autofocus[control]': component.expandedControl
+		};
+		_.each( values, function( valueObj, key ) {
+			var value = valueObj.get();
+			if ( value ) {
+				newQueryParams[ key ] = value;
+			}
+		} );
 
-		urlParser.search = _.map( queryParams, function( value, key ) {
-			return (
-				encodeURIComponent( key ) + '=' + encodeURIComponent( value )
-			).replace( /%5B/g, '[' ).replace( /%5D/g, ']' );
-		} ).join( '&' );
+		if ( ! _.isEqual( newQueryParams, oldQueryParams ) ) {
+			urlParser.search = _.map( newQueryParams, function( value, key ) {
+				return (
+					encodeURIComponent( key ) + '=' + encodeURIComponent( value )
+				).replace( /%5B/g, '[' ).replace( /%5D/g, ']' );
+			} ).join( '&' );
 
-		history.replaceState( {}, document.title, urlParser.href );
+			history.replaceState( {}, document.title, urlParser.href );
+		}
 	} );
 
 	/**
