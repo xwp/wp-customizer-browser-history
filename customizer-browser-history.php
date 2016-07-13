@@ -6,7 +6,6 @@
  * Plugin URI: https://github.com/xwp/wp-customizer-browser-history
  * Author: Weston Ruter
  * Author URI: https://make.xwp.co/
- * Text Domain: customize-browser-history
  * Domain Path: /languages
  *
  * Copyright (c) 2016 XWP (https://make.xwp.co/)
@@ -32,7 +31,7 @@
  * Register and enqueue customizer scripts.
  */
 function customizer_browser_history_enqueue_scripts() {
-	$handle = 'customize-browser-history';
+	$handle = 'customizer-browser-history';
 	$src = plugin_dir_url( __FILE__ ) . '/customizer-browser-history.js';
 	$deps = array( 'customize-controls' );
 	$ver = false;
