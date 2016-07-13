@@ -69,12 +69,13 @@ var CustomizerBookmarking = (function( api ) {
 
 		if ( ! _.isEqual( newQueryParams, oldQueryParams ) ) {
 			urlParser.search = _.map( newQueryParams, function( value, key ) {
-				return (
-					encodeURIComponent( key ) + '=' + encodeURIComponent( value )
-				).replace( /%5B/g, '[' ).replace( /%5D/g, ']' );
+				var pair = encodeURIComponent( key ) + '=' + encodeURIComponent( value );
+				pair = pair.replace( /%5B/g, '[' ).replace( /%5D/g, ']' );
+				return pair;
 			} ).join( '&' );
 
-			history.replaceState( {}, document.title, urlParser.href );
+			// @todo If newQueryParams.url !== oldQueryParams.url, do history.pushState?
+			history.replaceState( newQueryParams, document.title, urlParser.href );
 		}
 	} );
 
@@ -108,6 +109,7 @@ var CustomizerBookmarking = (function( api ) {
 		}
 	};
 
+	// @todo window.addEventListener( 'popstate', ... ) if pushState used.
 	api.bind( 'ready', function() {
 
 		// Short-circuit if not supported.
