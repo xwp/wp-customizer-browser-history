@@ -60,6 +60,14 @@ var CustomizerBookmarking = (function( api ) {
 			'autofocus[section]': component.expandedSection,
 			'autofocus[control]': component.expandedControl
 		};
+
+		// Preserve extra vars.
+		_.each( _.keys( oldQueryParams ), function( key ) {
+			if ( 'undefined' === typeof values[ key ] ) {
+				newQueryParams[ key ] = oldQueryParams[ key ]
+			}
+		} );
+
 		_.each( values, function( valueObj, key ) {
 			var value = valueObj.get();
 			if ( value ) {
