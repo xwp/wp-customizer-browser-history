@@ -64,7 +64,7 @@ var CustomizerBookmarking = (function( api ) {
 		// Preserve extra vars.
 		_.each( _.keys( oldQueryParams ), function( key ) {
 			if ( 'undefined' === typeof values[ key ] ) {
-				newQueryParams[ key ] = oldQueryParams[ key ]
+				newQueryParams[ key ] = oldQueryParams[ key ];
 			}
 		} );
 
