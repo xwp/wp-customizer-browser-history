@@ -30,11 +30,13 @@ var CustomizerBookmarking = (function( api ) {
 				expandedSection = section.id;
 			}
 		} );
-		api.control.each( function( control ) {
-			if ( expandedSection && control.active() && control.expanded && control.expanded() ) {
-				expandedControl = control.id;
-			}
-		} );
+		if ( expandedSection ) {
+			api.control.each( function( control ) {
+				if ( expandedSection && control.active() && control.expanded && control.expanded() ) {
+					expandedControl = control.id;
+				}
+			} );
+		}
 
 		component.expandedPanel.set( expandedPanel );
 		component.expandedSection.set( expandedSection );
