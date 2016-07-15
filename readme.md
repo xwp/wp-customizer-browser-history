@@ -9,7 +9,7 @@ Sync browser URL in Customizer with current preview URL and focused panels, sect
 **Tested up to:** 4.6-beta2  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
-[![Build Status](https://travis-ci.org/xwp/wp-customizer-browser-history.svg?branch=master)](https://travis-ci.org/xwp/wp-customizer-browser-history) 
+[![Build Status](https://travis-ci.org/xwp/wp-customizer-browser-history.svg?branch=master)](https://travis-ci.org/xwp/wp-customizer-browser-history) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
 
 ## Description ##
 
