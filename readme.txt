@@ -15,6 +15,18 @@ Sync browser URL in Customizer with current preview URL and focused panels, sect
 
 This plugin keeps the Customizer URL in the browser updated with current previewed URL as the `url` query param and current expanded panel/section/control as `autofocus` params. This allows for bookmarking and also the ability to reload and return go the same view (which is great for developers). This works best with the <a href="https://github.com/xwp/wp-customize-snapshots">Customize Snapshots</a> plugin, which allows allows you to save your Customizer state in a shapshot/changeset with an associated UUID that also gets added to the browser URL in the Customizer.
 
+For example, if you load the Customizer and then click the “Site Identity” section, the URL will be replaced to add `autofocus[section]=title_tagline`.
+
+If you navigate into the nav menus panel, open a menu section, and then expand a nav menu item control, then the URL will have these autofocus params added: `autofocus[panel]=nav_menus&autofocus[section]=nav_menu[87]&autofocus[control]=nav_menu_item[5123]`.
+
+And while these changes to the `autofocus` params are being made in the browser's URL as the Customizer UI is interacted with, if you navigate to another page in the preview the `url` parameter will also be replaced to reflect the new preview URL.
+
+Note that the `url` param will be URL-encoded. So a typical Customizer URL would get updated to look like:
+
+<pre>
+http://example.com/wp-admin/customize.php?url=http%3A%2F%2Fexample.com%2Fsample-page%2F&autofocus[panel]=widgets&autofocus[section]=sidebar-widgets-sidebar-1&autofocus[control]=widget_text[10]
+</pre>
+
 **Development of this plugin is done [on GitHub](https://github.com/xwp/wp-customizer-browser-history). Pull requests welcome. Please see [issues](https://github.com/xwp/wp-customizer-browser-history/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/customizer-browser-history).**
 
 == Changelog ==
