@@ -60,7 +60,8 @@ var CustomizerBookmarking = (function( api ) {
 			url: api.previewer.previewUrl,
 			'autofocus[panel]': component.expandedPanel,
 			'autofocus[section]': component.expandedSection,
-			'autofocus[control]': component.expandedControl
+			'autofocus[control]': component.expandedControl,
+			customize_previewed_device: api.previewedDevice
 		};
 
 		// Preserve extra vars.
@@ -143,6 +144,7 @@ var CustomizerBookmarking = (function( api ) {
 		api.section.bind( 'remove', component.watchExpandedChange );
 		api.panel.bind( 'remove', component.watchExpandedChange );
 
+		api.previewedDevice.bind( component.replaceState );
 		api.previewer.previewUrl.bind( component.replaceState );
 	} );
 
