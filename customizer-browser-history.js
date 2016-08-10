@@ -1,9 +1,9 @@
 /* global wp */
-/* exported CustomizerBookmarking */
+/* exported CustomizerBrowserHistory */
 /* eslint no-magic-numbers: ["error", { "ignore": [0,1,2] }] */
-/* eslint complexity: ["error", 5] */
+/* eslint complexity: ["error", 6] */
 
-var CustomizerBookmarking = (function( api ) {
+var CustomizerBrowserHistory = (function( api, $ ) {
 	'use strict';
 
 	var component = {
@@ -14,11 +14,11 @@ var CustomizerBookmarking = (function( api ) {
 	};
 
 	/**
-	 * Update the URL state with the current Customizer state.
+	 * Update the URL state with the current Customizer state, using pushState for url changes and replaceState for other changes.
 	 *
 	 * @returns {void}
 	 */
-	component.replaceState = _.debounce( function() {
+	component.updateState = _.debounce( function updateState() {
 		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, queryString;
 
 		api.panel.each( function( panel ) {
@@ -89,10 +89,29 @@ var CustomizerBookmarking = (function( api ) {
 				return pair;
 			} ).join( '&' );
 
-			// @todo If newQueryParams.url !== oldQueryParams.url, do history.pushState?
-			history.replaceState( newQueryParams, document.title, urlParser.href );
+			if ( newQueryParams.url !== oldQueryParams.url ) {
+				history.pushState( newQueryParams, '', urlParser.href );
+			} else {
+				history.replaceState( newQueryParams, '', urlParser.href );
+			}
 		}
 	} );
+
+	/**
+	 * On history popstate, set the URL to match.
+	 *
+	 * @param {jQuery.Event} event Event.
+	 * @returns {void}
+	 */
+	component.onPopState = function onPopState( event ) {
+		var url = null;
+		if ( event.originalEvent.state && event.originalEvent.state.url ) {
+			url = event.originalEvent.state.url;
+		} else {
+			url = api.settings.url.preview; // On pop to initial state, the state is null.
+		}
+		api.previewer.previewUrl.set( url );
+	};
 
 	/**
 	 * Watch for changes to a construct's active and expanded states.
@@ -102,10 +121,10 @@ var CustomizerBookmarking = (function( api ) {
 	 */
 	component.watchExpandedChange = function watchExpandedChange( construct ) {
 		if ( construct.active ) {
-			construct.active.bind( component.replaceState );
+			construct.active.bind( component.updateState );
 		}
 		if ( construct.expanded ) {
-			construct.expanded.bind( component.replaceState );
+			construct.expanded.bind( component.updateState );
 		}
 	};
 
@@ -117,10 +136,10 @@ var CustomizerBookmarking = (function( api ) {
 	 */
 	component.unwatchExpandedChange = function watchExpandedChange( construct ) {
 		if ( construct.active ) {
-			construct.active.unbind( component.replaceState );
+			construct.active.unbind( component.updateState );
 		}
 		if ( construct.expanded ) {
-			construct.expanded.unbind( component.replaceState );
+			construct.expanded.unbind( component.updateState );
 		}
 	};
 
@@ -144,11 +163,13 @@ var CustomizerBookmarking = (function( api ) {
 	api.bind( 'ready', function onCustomizeReady() {
 
 		// Short-circuit if not supported.
-		if ( ! history.replaceState ) {
+		if ( ! history.replaceState || ! history.pushState ) {
 			return;
 		}
 
 		component.defaultPreviewedDevice = component.findDefaultPreviewedDevice();
+
+		$( window ).on( 'popstate', component.onPopState );
 
 		component.expandedPanel.set( api.settings.autofocus.panel || '' );
 		component.expandedSection.set( api.settings.autofocus.section || '' );
@@ -166,10 +187,10 @@ var CustomizerBookmarking = (function( api ) {
 		api.section.bind( 'remove', component.watchExpandedChange );
 		api.panel.bind( 'remove', component.watchExpandedChange );
 
-		api.previewedDevice.bind( component.replaceState );
-		api.previewer.previewUrl.bind( component.replaceState );
+		api.previewedDevice.bind( component.updateState );
+		api.previewer.previewUrl.bind( component.updateState );
 	} );
 
 	return component;
 
-})( wp.customize );
+})( wp.customize, jQuery );
