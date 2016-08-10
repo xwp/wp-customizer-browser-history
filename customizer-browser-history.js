@@ -7,6 +7,7 @@ var CustomizerBookmarking = (function( api ) {
 	'use strict';
 
 	var component = {
+		defaultPreviewedDevice: null,
 		expandedPanel: new api.Value(),
 		expandedSection: new api.Value(),
 		expandedControl: new api.Value()
@@ -44,7 +45,10 @@ var CustomizerBookmarking = (function( api ) {
 
 		urlParser = document.createElement( 'a' );
 		urlParser.href = location.href;
-		oldQueryParams = {};
+		oldQueryParams = {
+			url: api.settings.url.preview,
+			customize_previewed_device: component.defaultPreviewedDevice
+		};
 		queryString = urlParser.search.substr( 1 );
 		if ( queryString ) {
 			_.each( queryString.split( '&' ), function( pair ) {
@@ -120,13 +124,31 @@ var CustomizerBookmarking = (function( api ) {
 		}
 	};
 
-	// @todo window.addEventListener( 'popstate', ... ) if pushState used.
-	api.bind( 'ready', function() {
+	/**
+	 * Find default previewed device.
+	 *
+	 * @returns {string} Device.
+	 */
+	component.findDefaultPreviewedDevice = function findDefaultPreviewedDevice() {
+		var defaultPreviewedDevice = null;
+		_.find( api.settings.previewableDevices, function checkDefaultPreviewedDevice( params, device ) {
+			if ( true === params['default'] ) {
+				defaultPreviewedDevice = device;
+				return true;
+			}
+			return false;
+		} );
+		return defaultPreviewedDevice;
+	};
+
+	api.bind( 'ready', function onCustomizeReady() {
 
 		// Short-circuit if not supported.
 		if ( ! history.replaceState ) {
 			return;
 		}
+
+		component.defaultPreviewedDevice = component.findDefaultPreviewedDevice();
 
 		component.expandedPanel.set( api.settings.autofocus.panel || '' );
 		component.expandedSection.set( api.settings.autofocus.section || '' );
