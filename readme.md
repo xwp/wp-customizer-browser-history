@@ -8,7 +8,7 @@ Sync browser URL in Customizer with current preview URL and focused panels, sect
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [customize](https://wordpress.org/plugins/tags/customize)  
 **Requires at least:** 4.5  
 **Tested up to:** 4.6  
-**Stable tag:** 0.2  
+**Stable tag:** 0.3  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
 [![Build Status](https://travis-ci.org/xwp/wp-customizer-browser-history.svg?branch=master)](https://travis-ci.org/xwp/wp-customizer-browser-history) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
@@ -17,7 +17,7 @@ Sync browser URL in Customizer with current preview URL and focused panels, sect
 
 *This is a feature plugin intended to implement [#28536](https://core.trac.wordpress.org/ticket/28536): Add browser history and deep linking for navigation in Customizer preview*
 
-This plugin keeps the Customizer URL in the browser updated with current previewed URL as the `url` query param and current expanded panel/section/control as `autofocus` params. This allows for bookmarking and also the ability to reload and return go the same view (which is great for developers), including which device you are previewing (desktop, tablet, or mobile). This works best with the <a href="https://github.com/xwp/wp-customize-snapshots">Customize Snapshots</a> plugin, which allows allows you to save your Customizer state in a shapshot/changeset with an associated UUID that also gets added to the browser URL in the Customizer.
+This plugin keeps the Customizer URL in the browser updated with current previewed URL as the `url` query param and current expanded panel/section/control as `autofocus` params. This allows for bookmarking and also the ability to reload and return go the same view (which is great for developers), including which device you are previewing (desktop, tablet, or mobile). Not only will the URL be kept in sync with the current customizer UI, but new browser history entries will be added as you navigate around the site in the preview (via `history.pushState()`), allowing you to use the back/forward buttons as you would normally when browsing the site outside the customizer. This plugin complements well the <a href="https://github.com/xwp/wp-customize-snapshots">Customize Snapshots</a> plugin which allows you to save your Customizer state in a shapshot/changeset with an associated UUID that also gets added to the browser URL in the Customizer.
 
 For example, if you load the Customizer and then click the “Site Identity” section, the URL will be replaced to add `autofocus[section]=title_tagline`.
 
@@ -34,6 +34,10 @@ http://example.com/wp-admin/customize.php?url=http%3A%2F%2Fexample.com%2Fsample-
 **Development of this plugin is done [on GitHub](https://github.com/xwp/wp-customizer-browser-history). Pull requests welcome. Please see [issues](https://github.com/xwp/wp-customizer-browser-history/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/customizer-browser-history).**
 
 ## Changelog ##
+
+### 0.3.0 ###
+* Add back/forward browser history for navigation in the Customizer preview. See [#2](https://github.com/xwp/wp-customizer-browser-history/issues/2), PR [#8](https://github.com/xwp/wp-customizer-browser-history/pull/8).
+* Eliminate initial insertion of `url` and `customize_previewed_device` params when same as default.
 
 ### 0.2.0 ###
 Persist the device being previewed (desktop, tablet, mobile) in the URL via a new `customize_previewed_device` query param. See [#3](https://github.com/xwp/wp-customizer-browser-history/issues/3).
