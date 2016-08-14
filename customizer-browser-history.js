@@ -7,6 +7,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	'use strict';
 
 	var component = {
+		defaultQueryParamValues: {},
 		defaultPreviewedDevice: null,
 		expandedPanel: new api.Value(),
 		expandedSection: new api.Value(),
@@ -24,10 +25,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		var urlParser, queryParams, queryString;
 		urlParser = document.createElement( 'a' );
 		urlParser.href = url;
-		queryParams = {
-			url: api.settings.url.preview,
-			device: component.defaultPreviewedDevice
-		};
+		queryParams = {};
 		queryString = urlParser.search.substr( 1 );
 		if ( queryString ) {
 			_.each( queryString.split( '&' ), function( pair ) {
@@ -88,7 +86,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			'autofocus[section]': component.expandedSection,
 			'autofocus[control]': component.expandedControl,
 			device: api.previewedDevice,
-			'scroll': component.previewScrollPosition
+			scroll: component.previewScrollPosition
 		};
 
 		// Preserve extra vars.
@@ -98,9 +96,10 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			}
 		} );
 
+		// Collect new query params, omitting any that are the same as the defaults.
 		_.each( values, function( valueObj, key ) {
 			var value = valueObj.get();
-			if ( value ) {
+			if ( null !== value && value !== component.defaultQueryParamValues[ key ] ) {
 				newQueryParams[ key ] = value;
 			}
 		} );
@@ -209,6 +208,15 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			component.previewScrollPosition.set( currentQueryParams.scroll );
 			api.previewer.scroll = component.previewScrollPosition.get();
 		}
+
+		component.defaultQueryParamValues = {
+			device: component.defaultPreviewedDevice,
+			scroll: 0,
+			url: api.settings.url.home,
+			'autofocus[panel]': '',
+			'autofocus[section]': '',
+			'autofocus[control]': ''
+		};
 
 		$( window ).on( 'popstate', component.onPopState );
 
