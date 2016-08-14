@@ -38,10 +38,11 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			} );
 		}
 
-		if ( ! _.isUndefined( queryParams.preview_scroll_position ) ) {
-			queryParams.preview_scroll_position = parseInt( queryParams.preview_scroll_position, 10 );
-			if ( isNaN( queryParams.preview_scroll_position ) ) {
-				delete queryParams.preview_scroll_position;
+		// Cast scroll to integer.
+		if ( ! _.isUndefined( queryParams.scroll ) ) {
+			queryParams.scroll = parseInt( queryParams.scroll, 10 );
+			if ( isNaN( queryParams.scroll ) ) {
+				delete queryParams.scroll;
 			}
 		}
 
@@ -87,7 +88,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			'autofocus[section]': component.expandedSection,
 			'autofocus[control]': component.expandedControl,
 			customize_previewed_device: api.previewedDevice,
-			'preview_scroll_position': component.previewScrollPosition
+			'scroll': component.previewScrollPosition
 		};
 
 		// Preserve extra vars.
@@ -131,8 +132,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		var url = null;
 
 		// Preserve the old scroll position.
-		if ( event.originalEvent.state && event.originalEvent.state.preview_scroll_position ) {
-			api.previewer.scroll = event.originalEvent.state.preview_scroll_position;
+		if ( event.originalEvent.state && event.originalEvent.state.scroll ) {
+			api.previewer.scroll = event.originalEvent.state.scroll;
 		} else {
 			api.previewer.scroll = 0;
 		}
@@ -204,8 +205,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		currentQueryParams = component.getQueryParams( location.href );
 
 		component.defaultPreviewedDevice = component.findDefaultPreviewedDevice();
-		if ( currentQueryParams.preview_scroll_position ) {
-			component.previewScrollPosition.set( parseInt( currentQueryParams.preview_scroll_position, 10 ) || 0 );
+		if ( currentQueryParams.scroll ) {
+			component.previewScrollPosition.set( currentQueryParams.scroll );
 			api.previewer.scroll = component.previewScrollPosition.get();
 		}
 
