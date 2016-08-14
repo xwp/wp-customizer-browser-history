@@ -1,7 +1,7 @@
 /* global wp */
 /* exported CustomizerBrowserHistory */
-/* eslint no-magic-numbers: ["error", { "ignore": [0,1,2] }] */
-/* eslint complexity: ["error", 6] */
+/* eslint no-magic-numbers: ["error", { "ignore": [0,1,2,10] }] */
+/* eslint complexity: ["error", 8] */
 
 var CustomizerBrowserHistory = (function( api, $ ) {
 	'use strict';
@@ -10,7 +10,42 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		defaultPreviewedDevice: null,
 		expandedPanel: new api.Value(),
 		expandedSection: new api.Value(),
-		expandedControl: new api.Value()
+		expandedControl: new api.Value(),
+		previewScrollPosition: new api.Value( 0 )
+	};
+
+	/**
+	 * Get current query params.
+	 *
+	 * @param {string} url URL.
+	 * @returns {object} Query params.
+	 */
+	component.getQueryParams = function getQueryParams( url ) {
+		var urlParser, queryParams, queryString;
+		urlParser = document.createElement( 'a' );
+		urlParser.href = url;
+		queryParams = {
+			url: api.settings.url.preview,
+			customize_previewed_device: component.defaultPreviewedDevice
+		};
+		queryString = urlParser.search.substr( 1 );
+		if ( queryString ) {
+			_.each( queryString.split( '&' ), function( pair ) {
+				var parts = pair.split( '=', 2 );
+				if ( parts[0] && parts[1] ) {
+					queryParams[ decodeURIComponent( parts[0] ) ] = decodeURIComponent( parts[1] );
+				}
+			} );
+		}
+
+		if ( ! _.isUndefined( queryParams.preview_scroll_position ) ) {
+			queryParams.preview_scroll_position = parseInt( queryParams.preview_scroll_position, 10 );
+			if ( isNaN( queryParams.preview_scroll_position ) ) {
+				delete queryParams.preview_scroll_position;
+			}
+		}
+
+		return queryParams;
 	};
 
 	/**
@@ -19,7 +54,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 * @returns {void}
 	 */
 	component.updateState = _.debounce( function updateState() {
-		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, queryString;
+		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams;
 
 		api.panel.each( function( panel ) {
 			if ( panel.active() && panel.expanded() ) {
@@ -42,30 +77,17 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		component.expandedPanel.set( expandedPanel );
 		component.expandedSection.set( expandedSection );
 		component.expandedControl.set( expandedControl );
+		component.previewScrollPosition.set( api.previewer.scroll );
 
-		urlParser = document.createElement( 'a' );
-		urlParser.href = location.href;
-		oldQueryParams = {
-			url: api.settings.url.preview,
-			customize_previewed_device: component.defaultPreviewedDevice
-		};
-		queryString = urlParser.search.substr( 1 );
-		if ( queryString ) {
-			_.each( queryString.split( '&' ), function( pair ) {
-				var parts = pair.split( '=', 2 );
-				if ( parts[0] && parts[1] ) {
-					oldQueryParams[ decodeURIComponent( parts[0] ) ] = decodeURIComponent( parts[1] );
-				}
-			} );
-		}
-
+		oldQueryParams = component.getQueryParams( location.href );
 		newQueryParams = {};
 		values = {
 			url: api.previewer.previewUrl,
 			'autofocus[panel]': component.expandedPanel,
 			'autofocus[section]': component.expandedSection,
 			'autofocus[control]': component.expandedControl,
-			customize_previewed_device: api.previewedDevice
+			customize_previewed_device: api.previewedDevice,
+			'preview_scroll_position': component.previewScrollPosition
 		};
 
 		// Preserve extra vars.
@@ -83,6 +105,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		} );
 
 		if ( ! _.isEqual( newQueryParams, oldQueryParams ) ) {
+			urlParser = document.createElement( 'a' );
+			urlParser.href = location.href;
 			urlParser.search = _.map( newQueryParams, function( value, key ) {
 				var pair = encodeURIComponent( key ) + '=' + encodeURIComponent( value );
 				pair = pair.replace( /%5B/g, '[' ).replace( /%5D/g, ']' );
@@ -105,6 +129,15 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 */
 	component.onPopState = function onPopState( event ) {
 		var url = null;
+
+		// Preserve the old scroll position.
+		if ( event.originalEvent.state && event.originalEvent.state.preview_scroll_position ) {
+			api.previewer.scroll = event.originalEvent.state.preview_scroll_position;
+		} else {
+			api.previewer.scroll = 0;
+		}
+
+		// Update the url.
 		if ( event.originalEvent.state && event.originalEvent.state.url ) {
 			url = event.originalEvent.state.url;
 		} else {
@@ -161,13 +194,20 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	};
 
 	api.bind( 'ready', function onCustomizeReady() {
+		var currentQueryParams;
 
 		// Short-circuit if not supported.
 		if ( ! history.replaceState || ! history.pushState ) {
 			return;
 		}
 
+		currentQueryParams = component.getQueryParams( location.href );
+
 		component.defaultPreviewedDevice = component.findDefaultPreviewedDevice();
+		if ( currentQueryParams.preview_scroll_position ) {
+			component.previewScrollPosition.set( parseInt( currentQueryParams.preview_scroll_position, 10 ) || 0 );
+			api.previewer.scroll = component.previewScrollPosition.get();
+		}
 
 		$( window ).on( 'popstate', component.onPopState );
 
@@ -189,6 +229,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 
 		api.previewedDevice.bind( component.updateState );
 		api.previewer.previewUrl.bind( component.updateState );
+		api.previewer.bind( 'scroll', component.updateState );
+		component.previewScrollPosition.bind( component.updateState );
 	} );
 
 	return component;
