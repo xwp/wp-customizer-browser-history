@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Customizer Browser History
- * Version: 0.3.0
+ * Version: 0.4.0
  * Description: Keep Customizer URL updated with current previewed URL as url param and current expanded panel/section/control as autofocus param. This allows for bookmarking and also the ability to reload and return go the same view. This is a feature plugin for <a href="https://core.trac.wordpress.org/ticket/28536">#28536</a> and it works best with the <a href="https://github.com/xwp/wp-customize-snapshots">Customize Snapshots</a> plugin.
  * Plugin URI: https://github.com/xwp/wp-customizer-browser-history
  * Author: Weston Ruter
@@ -41,17 +41,17 @@ function customizer_browser_history_enqueue_scripts() {
 add_action( 'customize_controls_enqueue_scripts', 'customizer_browser_history_enqueue_scripts' );
 
 /**
- * Filter the available devices to change default based on customize_previewed_device query param.
+ * Filter the available devices to change default based on device query param.
  *
  * @see WP_Customize_Manager::get_previewable_devices()
  * @param array $devices List of devices with labels and default setting.
  * @return array Devices.
  */
 function customizer_browser_history_filter_default_previewable_devices( $devices ) {
-	if ( ! isset( $_GET['customize_previewed_device'] ) ) {
+	if ( ! isset( $_GET['device'] ) ) {
 		return $devices;
 	}
-	$device_name = wp_unslash( $_GET['customize_previewed_device'] );
+	$device_name = wp_unslash( $_GET['device'] );
 	if ( ! isset( $devices[ $device_name ] ) ) {
 		return $devices;
 	}
