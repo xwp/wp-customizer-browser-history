@@ -30,8 +30,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		if ( queryString ) {
 			_.each( queryString.split( '&' ), function( pair ) {
 				var parts = pair.split( '=', 2 );
-				if ( parts[0] && parts[1] ) {
-					queryParams[ decodeURIComponent( parts[0] ) ] = decodeURIComponent( parts[1] );
+				if ( parts[0] ) {
+					queryParams[ decodeURIComponent( parts[0] ) ] = _.isUndefined( parts[1] ) ? null : decodeURIComponent( parts[1] );
 				}
 			} );
 		}
@@ -108,7 +108,10 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			urlParser = document.createElement( 'a' );
 			urlParser.href = location.href;
 			urlParser.search = _.map( newQueryParams, function( value, key ) {
-				var pair = encodeURIComponent( key ) + '=' + encodeURIComponent( value );
+				var pair = encodeURIComponent( key );
+				if ( null !== value ) {
+					pair += '=' + encodeURIComponent( value );
+				}
 				pair = pair.replace( /%5B/g, '[' ).replace( /%5D/g, ']' );
 				return pair;
 			} ).join( '&' );
