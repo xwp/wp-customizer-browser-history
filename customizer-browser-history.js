@@ -26,7 +26,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		urlParser.href = url;
 		queryParams = {
 			url: api.settings.url.preview,
-			customize_previewed_device: component.defaultPreviewedDevice
+			device: component.defaultPreviewedDevice
 		};
 		queryString = urlParser.search.substr( 1 );
 		if ( queryString ) {
@@ -87,7 +87,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			'autofocus[panel]': component.expandedPanel,
 			'autofocus[section]': component.expandedSection,
 			'autofocus[control]': component.expandedControl,
-			customize_previewed_device: api.previewedDevice,
+			device: api.previewedDevice,
 			'scroll': component.previewScrollPosition
 		};
 

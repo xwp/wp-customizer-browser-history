@@ -24,7 +24,7 @@ And while these changes to the `autofocus` params are being made in the browser'
 Note that the `url` param will be URL-encoded. So a typical Customizer URL would get updated to look like:
 
 <pre>
-http://example.com/wp-admin/customize.php?url=http%3A%2F%2Fexample.com%2Fsample-page%2F&autofocus[panel]=widgets&autofocus[section]=sidebar-widgets-sidebar-1&autofocus[control]=widget_text[10]&customize_previewed_device=mobile
+http://example.com/wp-admin/customize.php?url=http%3A%2F%2Fexample.com%2Fsample-page%2F&autofocus[panel]=widgets&autofocus[section]=sidebar-widgets-sidebar-1&autofocus[control]=widget_text[10]&device=mobile
 </pre>
 
 **Development of this plugin is done [on GitHub](https://github.com/xwp/wp-customizer-browser-history). Pull requests welcome. Please see [issues](https://github.com/xwp/wp-customizer-browser-history/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/customizer-browser-history).**
