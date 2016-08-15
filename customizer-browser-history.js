@@ -67,7 +67,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		} );
 		if ( expandedSection ) {
 			api.control.each( function( control ) {
-				if ( expandedSection && control.active() && control.expanded && control.expanded() ) {
+				if ( expandedSection && control.section() === expandedSection && control.active() && control.expanded && control.expanded() ) {
 					expandedControl = control.id;
 				}
 			} );
