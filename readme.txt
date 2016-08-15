@@ -3,7 +3,7 @@ Contributors:      xwp, westonruter
 Tags:              customizer, customize
 Requires at least: 4.5
 Tested up to:      4.6
-Stable tag:        0.4.0
+Stable tag:        0.4.1
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,10 @@ http://example.com/wp-admin/customize.php?url=http%3A%2F%2Fexample.com%2Fsample-
 **Development of this plugin is done [on GitHub](https://github.com/xwp/wp-customizer-browser-history). Pull requests welcome. Please see [issues](https://github.com/xwp/wp-customizer-browser-history/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/customizer-browser-history).**
 
 == Changelog ==
+
+= 0.4.1 =
+
+Fixed issue whereby an expanded widget control could persist its `autofocus` param when another section is expanded.
 
 = 0.4.0 =
 
