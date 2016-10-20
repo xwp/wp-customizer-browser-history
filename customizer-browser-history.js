@@ -26,6 +26,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		urlParser = document.createElement( 'a' );
 		urlParser.href = url;
 		queryParams = {};
+
+		// @todo The following can be replaced with wp.customize.utils.parseQueryString().
 		queryString = urlParser.search.substr( 1 );
 		if ( queryString ) {
 			_.each( queryString.split( '&' ), function( pair ) {
@@ -81,12 +83,12 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		oldQueryParams = component.getQueryParams( location.href );
 		newQueryParams = {};
 		values = {
-			url: api.previewer.previewUrl,
+			'url': api.previewer.previewUrl,
 			'autofocus[panel]': component.expandedPanel,
 			'autofocus[section]': component.expandedSection,
 			'autofocus[control]': component.expandedControl,
-			device: api.previewedDevice,
-			scroll: component.previewScrollPosition
+			'device': api.previewedDevice,
+			'scroll': component.previewScrollPosition
 		};
 
 		// Preserve extra vars.
@@ -162,6 +164,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		if ( construct.expanded ) {
 			construct.expanded.bind( component.updateState );
 		}
+		component.updateState();
 	};
 
 	/**
@@ -170,13 +173,18 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 * @param {wp.customize.Panel|wp.customize.Section|wp.customize.Control} construct Construct.
 	 * @returns {void}
 	 */
-	component.unwatchExpandedChange = function watchExpandedChange( construct ) {
+	component.unwatchExpandedChange = function unwatchExpandedChange( construct ) {
 		if ( construct.active ) {
 			construct.active.unbind( component.updateState );
 		}
 		if ( construct.expanded ) {
 			construct.expanded.unbind( component.updateState );
 		}
+
+		// Because 'remove' event is triggered before the construct is removed. See #37269.
+		_.delay( function() {
+			component.updateState();
+		} );
 	};
 
 	/**
@@ -233,14 +241,16 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		api.section.bind( 'add', component.watchExpandedChange );
 		api.panel.bind( 'add', component.watchExpandedChange );
 
-		api.control.bind( 'remove', component.watchExpandedChange );
-		api.section.bind( 'remove', component.watchExpandedChange );
-		api.panel.bind( 'remove', component.watchExpandedChange );
+		api.control.bind( 'remove', component.unwatchExpandedChange );
+		api.section.bind( 'remove', component.unwatchExpandedChange );
+		api.panel.bind( 'remove', component.unwatchExpandedChange );
 
 		api.previewedDevice.bind( component.updateState );
 		api.previewer.previewUrl.bind( component.updateState );
 		api.previewer.bind( 'scroll', component.updateState );
 		component.previewScrollPosition.bind( component.updateState );
+
+		component.updateState();
 	};
 
 	api.bind( 'ready', function onCustomizeReady() {
