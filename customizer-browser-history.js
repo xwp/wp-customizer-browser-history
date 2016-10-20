@@ -8,7 +8,6 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 
 	var component = {
 		defaultQueryParamValues: {},
-		defaultPreviewedDevice: null,
 		expandedPanel: new api.Value(),
 		expandedSection: new api.Value(),
 		expandedControl: new api.Value(),
@@ -188,23 +187,6 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	};
 
 	/**
-	 * Find default previewed device.
-	 *
-	 * @returns {string} Device.
-	 */
-	component.findDefaultPreviewedDevice = function findDefaultPreviewedDevice() {
-		var defaultPreviewedDevice = null;
-		_.find( api.settings.previewableDevices, function checkDefaultPreviewedDevice( params, device ) {
-			if ( true === params['default'] ) {
-				defaultPreviewedDevice = device;
-				return true;
-			}
-			return false;
-		} );
-		return defaultPreviewedDevice;
-	};
-
-	/**
 	 * Update window.location to sync with customizer state.
 	 *
 	 * @returns {void}
@@ -212,14 +194,23 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	component.startUpdatingWindowLocation = function startUpdatingWindowLocation() {
 		var currentQueryParams = component.getQueryParams( location.href );
 
-		component.defaultPreviewedDevice = component.findDefaultPreviewedDevice();
 		if ( currentQueryParams.scroll ) {
 			component.previewScrollPosition.set( currentQueryParams.scroll );
 			api.previewer.scroll = component.previewScrollPosition.get();
 		}
 
 		component.defaultQueryParamValues = {
-			'device': component.defaultPreviewedDevice,
+			'device': (function() {
+				var defaultPreviewedDevice = null;
+				_.find( api.settings.previewableDevices, function checkDefaultPreviewedDevice( params, device ) {
+					if ( true === params['default'] ) {
+						defaultPreviewedDevice = device;
+						return true;
+					}
+					return false;
+				} );
+				return defaultPreviewedDevice;
+			} )(),
 			'scroll': 0,
 			'url': api.settings.url.home,
 			'autofocus[panel]': '',
