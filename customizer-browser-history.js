@@ -196,15 +196,13 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		return defaultPreviewedDevice;
 	};
 
-	api.bind( 'ready', function onCustomizeReady() {
-		var currentQueryParams;
-
-		// Short-circuit if not supported.
-		if ( ! history.replaceState || ! history.pushState ) {
-			return;
-		}
-
-		currentQueryParams = component.getQueryParams( location.href );
+	/**
+	 * Update window.location to sync with customizer state.
+	 *
+	 * @returns {void}
+	 */
+	component.startUpdatingWindowLocation = function startUpdatingWindowLocation() {
+		var currentQueryParams = component.getQueryParams( location.href );
 
 		component.defaultPreviewedDevice = component.findDefaultPreviewedDevice();
 		if ( currentQueryParams.scroll ) {
@@ -243,6 +241,20 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		api.previewer.previewUrl.bind( component.updateState );
 		api.previewer.bind( 'scroll', component.updateState );
 		component.previewScrollPosition.bind( component.updateState );
+	};
+
+	api.bind( 'ready', function onCustomizeReady() {
+
+		// Short-circuit if not supported.
+		if ( ! history.replaceState || ! history.pushState ) {
+			return;
+		}
+
+		/*
+		 * Start syncing state once the preview loads so that the active panels/sections/controls
+		 * have been set to prevent the URL from being momentarily having autofocus params removed.
+		 */
+		api.previewer.deferred.active.done( component.startUpdatingWindowLocation );
 	} );
 
 	return component;
