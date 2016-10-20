@@ -54,7 +54,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 *
 	 * @returns {void}
 	 */
-	component.updateState = _.debounce( function updateState() {
+	component.updateWindowLocation = _.debounce( function updateWindowLocation() {
 		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams;
 
 		api.panel.each( function( panel ) {
@@ -159,12 +159,12 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 */
 	component.watchExpandedChange = function watchExpandedChange( construct ) {
 		if ( construct.active ) {
-			construct.active.bind( component.updateState );
+			construct.active.bind( component.updateWindowLocation );
 		}
 		if ( construct.expanded ) {
-			construct.expanded.bind( component.updateState );
+			construct.expanded.bind( component.updateWindowLocation );
 		}
-		component.updateState();
+		component.updateWindowLocation();
 	};
 
 	/**
@@ -175,15 +175,15 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 */
 	component.unwatchExpandedChange = function unwatchExpandedChange( construct ) {
 		if ( construct.active ) {
-			construct.active.unbind( component.updateState );
+			construct.active.unbind( component.updateWindowLocation );
 		}
 		if ( construct.expanded ) {
-			construct.expanded.unbind( component.updateState );
+			construct.expanded.unbind( component.updateWindowLocation );
 		}
 
 		// Because 'remove' event is triggered before the construct is removed. See #37269.
 		_.delay( function() {
-			component.updateState();
+			component.updateWindowLocation();
 		} );
 	};
 
@@ -219,9 +219,9 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		}
 
 		component.defaultQueryParamValues = {
-			device: component.defaultPreviewedDevice,
-			scroll: 0,
-			url: api.settings.url.home,
+			'device': component.defaultPreviewedDevice,
+			'scroll': 0,
+			'url': api.settings.url.home,
 			'autofocus[panel]': '',
 			'autofocus[section]': '',
 			'autofocus[control]': ''
@@ -245,12 +245,12 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		api.section.bind( 'remove', component.unwatchExpandedChange );
 		api.panel.bind( 'remove', component.unwatchExpandedChange );
 
-		api.previewedDevice.bind( component.updateState );
-		api.previewer.previewUrl.bind( component.updateState );
-		api.previewer.bind( 'scroll', component.updateState );
-		component.previewScrollPosition.bind( component.updateState );
+		api.previewedDevice.bind( component.updateWindowLocation );
+		api.previewer.previewUrl.bind( component.updateWindowLocation );
+		api.previewer.bind( 'scroll', component.updateWindowLocation );
+		component.previewScrollPosition.bind( component.updateWindowLocation );
 
-		component.updateState();
+		component.updateWindowLocation();
 	};
 
 	api.bind( 'ready', function onCustomizeReady() {
