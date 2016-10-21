@@ -113,7 +113,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 				if ( null !== value ) {
 					pair += '=' + encodeURIComponent( value );
 				}
-				pair = pair.replace( /%5B/g, '[' ).replace( /%5D/g, ']' );
+				pair = pair.replace( /%5B/g, '[' ).replace( /%5D/g, ']' ).replace( /%2F/g, '/' ).replace( /%3A/g, ':' );
 				return pair;
 			} ).join( '&' );
 
