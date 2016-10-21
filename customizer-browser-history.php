@@ -24,15 +24,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  *
- * @package CustomizeBrowserHistory
+ * @package CustomizerBrowserHistory
  */
 
 /**
  * Register and enqueue customizer scripts.
  */
 function customizer_browser_history_enqueue_scripts() {
-	$handle = 'customizer-browser-history';
-	$src = plugin_dir_url( __FILE__ ) . '/customizer-browser-history.js';
+	$handle = 'customizer-browser-history-controls';
+	$src = plugin_dir_url( __FILE__ ) . '/customizer-browser-history-controls.js';
 	$deps = array( 'customize-controls' );
 	$ver = false;
 	wp_enqueue_script( $handle, $src, $deps, $ver );
