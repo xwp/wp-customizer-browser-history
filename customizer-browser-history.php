@@ -62,3 +62,25 @@ function customizer_browser_history_filter_default_previewable_devices( $devices
 	return $devices;
 }
 add_filter( 'customize_previewable_devices', 'customizer_browser_history_filter_default_previewable_devices' );
+
+/**
+ * Esure that previewed device is included in the previewed URL.
+ */
+function set_preview_url() {
+	global $wp_customize;
+
+	$previewed_device_name = null;
+	$previewed_devices = $wp_customize->get_previewable_devices();
+	foreach ( $previewed_devices as $device => $params ) {
+		if ( isset( $params['default'] ) && true === $params['default'] ) {
+			$previewed_device_name = $device;
+			break;
+		}
+	}
+
+	if ( $previewed_device_name ) {
+		$wp_customize->set_preview_url( add_query_arg( 'customize_previewed_device', $previewed_device_name, $wp_customize->get_preview_url() ) );
+	}
+
+}
+add_action( 'customize_controls_init', __NAMESPACE__ . '\set_preview_url' );
