@@ -8,11 +8,32 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 
 	var component = {
 		defaultQueryParamValues: {},
+		previousQueryParams: {},
+		// historyPosition: 0, // @todo Eliminate???? Or we need to ensure it is preserved when replaceState is done.
+		// currentHistoryState: null,
 		expandedPanel: new api.Value(),
 		expandedSection: new api.Value(),
 		expandedControl: new api.Value(),
 		previewScrollPosition: new api.Value( 0 )
 	};
+
+	// history.replaceState = ( function( nativeReplaceState ) {
+	// 	return function historyReplaceState( data, title, url ) {
+	// 		component.currentHistoryState = data;
+	// 		return nativeReplaceState.call( history, data, title, component.injectUrlWithState( url ) );
+	// 	};
+	// } )( history.replaceState );
+	//
+	// history.pushState = ( function( nativePushState ) {
+	// 	return function historyPushState( data, title, url ) {
+	// 		component.currentHistoryState = data;
+	// 		return nativePushState.call( history, data, title, component.injectUrlWithState( url ) );
+	// 	};
+	// } )( history.pushState );
+	//
+	// window.addEventListener( 'popstate', function( event ) {
+	// 	component.currentHistoryState = event.state;
+	// } );
 
 	/**
 	 * Get current query params.
@@ -54,7 +75,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 * @returns {void}
 	 */
 	component.updateWindowLocation = _.debounce( function updateWindowLocation() {
-		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams;
+		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, setQueryParams, state, urlChanged, changesetStatus;
 
 		api.panel.each( function( panel ) {
 			if ( panel.active() && panel.expanded() ) {
@@ -79,7 +100,11 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		component.expandedControl.set( expandedControl );
 		component.previewScrollPosition.set( api.previewer.scroll );
 
-		oldQueryParams = component.getQueryParams( location.href );
+		if ( top === window ) {
+			oldQueryParams = component.getQueryParams( location.href );
+		} else {
+			oldQueryParams = component.previousQueryParams;
+		}
 		newQueryParams = {};
 		values = {
 			'url': api.previewer.previewUrl,
@@ -97,18 +122,33 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			}
 		} );
 
-		// Collect new query params, omitting any that are the same as the defaults.
+		// Collect new query params.
 		_.each( values, function( valueObj, key ) {
 			var value = valueObj.get();
-			if ( null !== value && value !== component.defaultQueryParamValues[ key ] ) {
+			if ( null !== value ) {
 				newQueryParams[ key ] = value;
 			}
 		} );
 
+		// Set the changeset_uuid query param.
+		changesetStatus = api.state( 'changesetStatus' ).get();
+		if ( '' !== changesetStatus && 'publish' !== changesetStatus ) {
+			newQueryParams.changeset_uuid = api.settings.changeset.uuid;
+		} else {
+			delete newQueryParams.changeset_uuid;
+		}
+
 		if ( ! _.isEqual( newQueryParams, oldQueryParams ) ) {
+			setQueryParams = {};
+			_.each( newQueryParams, function( value, key ) {
+				if ( value !== component.defaultQueryParamValues[ key ] ) {
+					setQueryParams[ key ] = value;
+				}
+			} );
+
 			urlParser = document.createElement( 'a' );
 			urlParser.href = location.href;
-			urlParser.search = _.map( newQueryParams, function( value, key ) {
+			urlParser.search = _.map( setQueryParams, function( value, key ) {
 				var pair = encodeURIComponent( key );
 				if ( null !== value ) {
 					pair += '=' + encodeURIComponent( value );
@@ -117,33 +157,54 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 				return pair;
 			} ).join( '&' );
 
-			if ( newQueryParams.url !== oldQueryParams.url ) {
-				history.pushState( newQueryParams, '', urlParser.href );
+			urlChanged = ( newQueryParams.url ) !== ( oldQueryParams.url || component.defaultQueryParamValues.url );
+			// console.info( urlChanged );
+			// console.info( 'newQueryParams.url', newQueryParams.url )
+			// console.info( 'oldQueryParams.url', oldQueryParams.url || component.defaultQueryParamValues.url )
+			// if ( urlChanged ) {
+			// 	component.historyPosition += 1;
+			// }
+
+			state = {
+				queryParams: newQueryParams,
+				// historyPosition: component.historyPosition
+			};
+
+			// Send the state to the parent window.
+			if ( top === window ) {
+				if ( urlChanged ) {
+					history.pushState( {}, '', urlParser.href );
+				} else {
+					history.replaceState( {}, '', urlParser.href );
+				}
 			} else {
-				history.replaceState( newQueryParams, '', urlParser.href );
+				state.method = urlChanged ? 'pushState' : 'replaceState';
+				component.parentMessenger.send( 'history-change', state );
+				console.info( '[controls] history-change', state );
 			}
+			component.previousQueryParams = newQueryParams;
 		}
 	} );
 
 	/**
 	 * On history popstate, set the URL to match.
 	 *
-	 * @param {jQuery.Event} event Event.
+	 * @param {object} queryParams Query params.
 	 * @returns {void}
 	 */
-	component.onPopState = function onPopState( event ) {
+	component.updatePreviewUrl = function updatePreviewUrl( queryParams ) {
 		var url = null;
 
 		// Preserve the old scroll position.
-		if ( event.originalEvent.state && event.originalEvent.state.scroll ) {
-			api.previewer.scroll = event.originalEvent.state.scroll;
+		if ( queryParams.scroll ) {
+			api.previewer.scroll = queryParams.scroll;
 		} else {
 			api.previewer.scroll = 0;
 		}
 
 		// Update the url.
-		if ( event.originalEvent.state && event.originalEvent.state.url ) {
-			url = event.originalEvent.state.url;
+		if ( queryParams.url ) {
+			url = queryParams.url;
 		} else {
 			url = api.settings.url.preview; // On pop to initial state, the state is null.
 		}
@@ -212,13 +273,43 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 				return defaultPreviewedDevice;
 			} )(),
 			'scroll': 0,
-			'url': api.settings.url.home,
+			'url': api.settings.url.preview,
 			'autofocus[panel]': '',
 			'autofocus[section]': '',
 			'autofocus[control]': ''
 		};
 
-		$( window ).on( 'popstate', component.onPopState );
+		component.previousQueryParams = _.extend( {}, currentQueryParams );
+
+		if ( top === window ) {
+			$( window ).on( 'popstate', function onPopState( event ) {
+				var urlParser, queryParams;
+				urlParser = document.createElement( 'a' );
+				urlParser.href = location.href;
+				queryParams = api.utils.parseQueryString( urlParser.search.substr( 1 ) );
+
+				component.updatePreviewUrl( queryParams );
+				// if ( ! _.isUndefined( state.historyPosition ) ) {
+				// 	component.historyPosition = state.historyPosition;
+				// }
+
+				// Make sure the current changeset_uuid is in the URL.
+				if ( queryParams.changeset_uuid !== api.settings.changeset.uuid ) {
+					queryParams.changeset_uuid = api.settings.changeset.uuid;
+					urlParser.search = $.param( queryParams ).replace( /%5B/g, '[' ).replace( /%5D/g, ']' ).replace( /%2F/g, '/' ).replace( /%3A/g, ':' );
+					history.replaceState( {}, '', urlParser.href );
+				}
+			} );
+		} else {
+			component.parentMessenger.bind( 'history-change', function ( data ) {
+				console.info( 'OVERRIDE', component.previousQueryParams.url, 'to', data.queryParams.url );
+				component.previousQueryParams.url = data.queryParams.url; // Prevent pushState from happening.
+				component.updatePreviewUrl( data.queryParams || {} );
+				// if ( ! _.isUndefined( data.historyPosition ) ) {
+				// 	component.historyPosition = data.historyPosition;
+				// }
+			} );
+		}
 
 		component.expandedPanel.set( api.settings.autofocus.panel || '' );
 		component.expandedSection.set( api.settings.autofocus.section || '' );
@@ -240,6 +331,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		api.previewer.previewUrl.bind( component.updateWindowLocation );
 		api.previewer.bind( 'scroll', component.updateWindowLocation );
 		component.previewScrollPosition.bind( component.updateWindowLocation );
+		api.state( 'saved' ).bind( component.updateWindowLocation );
 
 		component.updateWindowLocation();
 	};
@@ -250,6 +342,11 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		if ( ! history.replaceState || ! history.pushState ) {
 			return;
 		}
+
+		component.parentMessenger = new api.Messenger({
+			url: api.settings.url.parent,
+			channel: 'loader'
+		});
 
 		/*
 		 * Start syncing state once the preview loads so that the active panels/sections/controls
