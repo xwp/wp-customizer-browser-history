@@ -26,8 +26,6 @@ window.wp = window.wp || {};
 	 */
 	Loader = $.extend( {}, api.Events, {
 
-		// historyPosition: 0,
-
 		changesetUuid: null,
 
 		/**
@@ -74,39 +72,25 @@ window.wp = window.wp || {};
 		popstate: function( event ) {
 			var state = event.originalEvent.state, urlParser, queryParams;
 
-			console.info( 'popstate', state );
-
-			// if ( state ) {
-			// 	if ( state.customize ) {
-			// 		this.historyCount -= 1;
-			// 	} else {
-			//
-			// 	}
-			//
+			urlParser = document.createElement( 'a' );
+			urlParser.href = location.href;
+			queryParams = api.utils.parseQueryString( urlParser.search.substr( 1 ) );
 
 			if ( state && state.customize ) {
 				if ( ! Loader.active ) {
 					Loader.open( state.customize );
-				} else if ( state.queryParams ) {
+				} else {
 					Loader.messenger.send( 'history-change', {
-						queryParams: state.queryParams,
-						// historyPosition: state.historyPosition
+						queryParams: queryParams
 					} );
 				}
 
 				// Make sure the current UUID is persisted.
-				urlParser = document.createElement( 'a' );
-				urlParser.href = location.href;
-				queryParams = api.utils.parseQueryString( urlParser.search.substr( 1 ) );
 				if ( queryParams.changeset_uuid !== Loader.changesetUuid ) {
 					queryParams.changeset_uuid = Loader.changesetUuid;
 					urlParser.search = $.param( queryParams ).replace( /%5B/g, '[' ).replace( /%5D/g, ']' ).replace( /%2F/g, '/' ).replace( /%3A/g, ':' );
 					history.replaceState( state, '', urlParser.href );
 				}
-
-				// if ( ! _.isUndefined( state.historyPosition ) ) {
-				// 	Loader.historyPosition = state.historyPosition;
-				// }
 			} else if ( Loader.active ) {
 				Loader.close();
 			}
@@ -138,17 +122,12 @@ window.wp = window.wp || {};
 				if ( Loader.changesetUuid ) {
 					data.queryParams.changeset_uuid = Loader.changesetUuid;
 				}
-				urlParser.search = $.param( data.queryParams );
+				urlParser.search = $.param( data.queryParams ).replace( /%5B/g, '[' ).replace( /%5D/g, ']' ).replace( /%2F/g, '/' ).replace( /%3A/g, ':' );
 
 				state = {
-					customize: urlParser.href,
-					queryParams: data.queryParams,
-					// historyPosition: data.historyPosition
+					customize: urlParser.href
 				};
-				console.info( '[loader] history-change', state );
-
 				history[ data.method ]( state, '', urlParser.href );
-				// Loader.historyPosition = data.historyPosition; // @todo No good. Need.
 			}
 		},
 
@@ -158,8 +137,6 @@ window.wp = window.wp || {};
 		 * @param {string} src URL to load in the Customizer.
 		 */
 		open: function( src ) {
-			var loader = this;
-
 			if ( this.active ) {
 				return;
 			}
@@ -174,8 +151,6 @@ window.wp = window.wp || {};
 
 			this.active = true;
 			this.body.addClass( 'customize-loading' );
-
-			// this.historyPosition = 0;
 
 			/*
 			 * Track the dirtiness state (whether the drafted changes have been published)
@@ -218,24 +193,6 @@ window.wp = window.wp || {};
 					};
 					$( window ).on( 'popstate.customize-loader', onPopState );
 					history.back();
-
-					// @todo Remove:
-					// backUntilExited = function() {
-					// 	history.back();
-					// 	_.delay( function() {
-					// 		if ( /\/wp-admin\/customize.php$/.test( location.pathname ) ) {
-					// 			backUntilExited();
-					// 		}
-					// 	} );
-					// };
-					// backUntilExited();
-
-					// @todo Remove:
-					// do {
-					// 	history.back(); // @todo This could be changed to just call history.back() until customize.php no longer appears in location.href.
-					// 	console.info( 'history.back()' );
-					// 	loader.historyPosition -= 1;
-					// } while ( loader.historyPosition > 0 );
 				} else if ( $.support.hashchange ) {
 					window.location.hash = '';
 				} else {
@@ -366,169 +323,3 @@ window.wp = window.wp || {};
 	// Expose the API publicly on window.wp.customize.Loader
 	api.Loader = Loader;
 })( wp, jQuery );
-
-//
-//
-// (function( api, $ ){
-//
-// 	return;
-//
-// 	var Loader = api.Loader;
-//
-// 	Loader.historyPosition = 0;
-//
-// 	Loader.onHistoryChange = function onHistoryChange( data ) {
-// 		var urlParser, state;
-// 		if ( data.queryParams && ( 'replaceState' === data.method || 'pushState' === data.method ) ) {
-// 			urlParser = document.createElement( 'a' );
-// 			urlParser.href = location.href;
-// 			urlParser.search = $.param( data.queryParams );
-// 			state = {
-// 				customize: urlParser.href,
-// 				queryParams: data.queryParams,
-// 				historyPosition: data.historyPosition
-// 			};
-// 			console.info( '[loader] history-change', state );
-//
-// 			history[ data.method ]( state, '', urlParser.href );
-// 			Loader.historyPosition = data.historyPosition;
-// 		}
-// 	};
-//
-// 	Loader.popstate = function onPopState( event ) {
-// 		var state = event.originalEvent.state;
-//
-// 		// if ( state ) {
-// 		// 	if ( state.customize ) {
-// 		// 		this.historyCount -= 1;
-// 		// 	} else {
-// 		//
-// 		// 	}
-// 		//
-//
-// 		if ( state && state.customize ) {
-// 			if ( ! Loader.active ) {
-// 				Loader.open( state.customize );
-// 			} else if ( state.queryParams ) {
-// 				Loader.messenger.send( 'history-change', {
-// 					queryParams: state.queryParams,
-// 					historyPosition: state.historyPosition
-// 				} );
-// 			}
-// 			if ( ! _.isUndefined( state.historyPosition ) ) {
-// 				Loader.historyPosition = state.historyPosition;
-// 			}
-// 		} else if ( Loader.active ) {
-// 			Loader.close();
-// 		}
-// 	};
-//
-// 	/**
-// 	 * Push state.
-// 	 *
-// 	 * @param {string} src Src.
-// 	 * @returns {void}
-// 	 */
-// 	Loader.pushstate = function pushState( src ) {
-// 		var hash = src.split( '?' )[1];
-//
-// 		// Ensure we don't call pushState if the user hit the forward button.
-// 		if ( $.support.history && window.location.href !== src ) {
-// 			history.pushState( { customize: src }, '', src );
-// 		} else if ( ! $.support.history && $.support.hashchange && hash ) {
-// 			window.location.hash = 'wp_customize=on&' + hash;
-// 		}
-//
-// 		// @todo Only trigger open if not active.
-// 		// if ( ! this.active ) {
-// 		// 	this.trigger( 'open' );
-// 		// }
-// 	};
-//
-// 	/**
-// 	 * Overrides
-// 	 *
-// 	 * @param src
-// 	 * @returns {*}
-// 	 */
-// 	Loader.open = function open( src ) {
-// 		var loader = this;
-//
-// 		if ( this.active ) {
-// 			return;
-// 		}
-//
-// 		// Load the full page on mobile devices.
-// 		if ( Loader.settings.browser.mobile ) {
-// 			return window.location = src;
-// 		}
-//
-// 		// Store the document title prior to opening the Live Preview
-// 		this.originalDocumentTitle = document.title;
-//
-// 		this.active = true;
-// 		this.body.addClass( 'customize-loading' );
-//
-// 		this.historyPosition = 0;
-//
-// 		/*
-// 		 * Track the dirtiness state (whether the drafted changes have been published)
-// 		 * of the Customizer in the iframe. This is used to decide whether to display
-// 		 * an AYS alert if the user tries to close the window before saving changes.
-// 		 */
-// 		this.saved = new api.Value( true );
-//
-// 		this.iframe = $( '<iframe />', {
-// 			'src': src,
-// 			'title': Loader.settings.l10n.mainIframeTitle
-// 		} ).appendTo( this.element );
-// 		this.iframe.one( 'load', this.loaded );
-//
-// 		// Create a postMessage connection with the iframe.
-// 		this.messenger = new api.Messenger( {
-// 			url: src,
-// 			channel: 'loader',
-// 			targetWindow: this.iframe[0].contentWindow
-// 		} );
-//
-// 		// Wait for the connection from the iframe before sending any postMessage events.
-// 		this.messenger.bind( 'ready', function () {
-// 			Loader.messenger.send( 'back' );
-// 		} );
-//
-// 		this.messenger.bind( 'close', function () {
-// 			if ( $.support.history ) {
-// 				do {
-// 					history.back();
-// 					console.info( 'history.back()' );
-// 					loader.historyPosition -= 1;
-// 				} while ( loader.historyPosition > 0 );
-// 			} else if ( $.support.hashchange ) {
-// 				window.location.hash = '';
-// 			} else {
-// 				Loader.close();
-// 			}
-// 		} );
-//
-// 		// Prompt AYS dialog when navigating away
-// 		$( window ).on( 'beforeunload', this.beforeunload );
-//
-// 		this.messenger.bind( 'saved', function () {
-// 			Loader.saved( true );
-// 		} );
-// 		this.messenger.bind( 'change', function () {
-// 			Loader.saved( false );
-// 		} );
-//
-// 		this.messenger.bind( 'title', function ( newTitle ) {
-// 			window.document.title = newTitle;
-// 		} );
-//
-// 		this.messenger.bind( 'history-change', this.onHistoryChange );
-//
-// 		this.pushState( src );
-//
-// 		this.trigger( 'open' );
-// 	};
-//
-// })( wp.customize, jQuery );
