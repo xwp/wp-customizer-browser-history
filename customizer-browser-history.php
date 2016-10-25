@@ -32,22 +32,12 @@
  */
 function customizer_browser_history_enqueue_scripts() {
 	$handle = 'customizer-browser-history-controls';
-	$src = plugin_dir_url( __FILE__ ) . '/customizer-browser-history-controls.js';
+	$src = plugin_dir_url( __FILE__ ) . '/customizer-browser-history.js';
 	$deps = array( 'customize-controls' );
 	$ver = false;
 	wp_enqueue_script( $handle, $src, $deps, $ver );
 }
 add_action( 'customize_controls_enqueue_scripts', 'customizer_browser_history_enqueue_scripts' );
-
-/**
- * Extend loader.
- *
- * @param WP_Scripts $wp_scripts Scripts.
- */
-function customizer_browser_history_extend_loader( WP_Scripts $wp_scripts ) {
-	$wp_scripts->registered['customize-loader']->src = plugin_dir_url( __FILE__ ) . 'customizer-browser-history-loader.js';
-}
-add_action( 'wp_default_scripts', 'customizer_browser_history_extend_loader' );
 
 /**
  * Filter the available devices to change default based on device query param.
