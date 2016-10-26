@@ -8,11 +8,40 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 
 	var component = {
 		defaultQueryParamValues: {},
-		defaultPreviewedDevice: null,
+		previousQueryParams: {},
 		expandedPanel: new api.Value(),
 		expandedSection: new api.Value(),
 		expandedControl: new api.Value(),
 		previewScrollPosition: new api.Value( 0 )
+	};
+
+	/**
+	 * Parse query string.
+	 *
+	 * @since 4.7.0
+	 * @access public
+	 *
+	 * @param {string} queryString Query string.
+	 * @returns {object} Parsed query string.
+	 */
+	component.parseQueryString = api.utils.parseQueryString || function( queryString ) {
+		var queryParams = {};
+		_.each( queryString.split( '&' ), function( pair ) {
+			var parts, key, value;
+			parts = pair.split( '=', 2 );
+			if ( ! parts[0] ) {
+				return;
+			}
+			key = decodeURIComponent( parts[0].replace( /\+/g, ' ' ) );
+			key = key.replace( / /g, '_' ); // What PHP does.
+			if ( _.isUndefined( parts[1] ) ) {
+				value = null;
+			} else {
+				value = decodeURIComponent( parts[1].replace( /\+/g, ' ' ) );
+			}
+			queryParams[ key ] = value;
+		} );
+		return queryParams;
 	};
 
 	/**
@@ -26,14 +55,10 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		urlParser = document.createElement( 'a' );
 		urlParser.href = url;
 		queryParams = {};
+
 		queryString = urlParser.search.substr( 1 );
 		if ( queryString ) {
-			_.each( queryString.split( '&' ), function( pair ) {
-				var parts = pair.split( '=', 2 );
-				if ( parts[0] ) {
-					queryParams[ decodeURIComponent( parts[0] ) ] = _.isUndefined( parts[1] ) ? null : decodeURIComponent( parts[1] );
-				}
-			} );
+			queryParams = component.parseQueryString( queryString );
 		}
 
 		// Cast scroll to integer.
@@ -52,8 +77,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 *
 	 * @returns {void}
 	 */
-	component.updateState = _.debounce( function updateState() {
-		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams;
+	component.updateWindowLocation = _.debounce( function updateWindowLocation() {
+		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, setQueryParams, urlChanged, changesetStatus;
 
 		api.panel.each( function( panel ) {
 			if ( panel.active() && panel.expanded() ) {
@@ -81,12 +106,12 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		oldQueryParams = component.getQueryParams( location.href );
 		newQueryParams = {};
 		values = {
-			url: api.previewer.previewUrl,
+			'url': api.previewer.previewUrl,
 			'autofocus[panel]': component.expandedPanel,
 			'autofocus[section]': component.expandedSection,
 			'autofocus[control]': component.expandedControl,
-			device: api.previewedDevice,
-			scroll: component.previewScrollPosition
+			'device': api.previewedDevice,
+			'scroll': component.previewScrollPosition
 		};
 
 		// Preserve extra vars.
@@ -96,53 +121,72 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			}
 		} );
 
-		// Collect new query params, omitting any that are the same as the defaults.
+		// Collect new query params.
 		_.each( values, function( valueObj, key ) {
 			var value = valueObj.get();
-			if ( null !== value && value !== component.defaultQueryParamValues[ key ] ) {
+			if ( null !== value ) {
 				newQueryParams[ key ] = value;
 			}
 		} );
 
+		// Set the changeset_uuid query param.
+		changesetStatus = api.state( 'changesetStatus' ).get();
+		if ( '' !== changesetStatus && 'publish' !== changesetStatus ) {
+			newQueryParams.changeset_uuid = api.settings.changeset.uuid;
+		} else {
+			delete newQueryParams.changeset_uuid;
+		}
+
 		if ( ! _.isEqual( newQueryParams, oldQueryParams ) ) {
+			setQueryParams = {};
+			_.each( newQueryParams, function( value, key ) {
+				if ( value !== component.defaultQueryParamValues[ key ] ) {
+					setQueryParams[ key ] = value;
+				}
+			} );
+
 			urlParser = document.createElement( 'a' );
 			urlParser.href = location.href;
-			urlParser.search = _.map( newQueryParams, function( value, key ) {
+			urlParser.search = _.map( setQueryParams, function( value, key ) {
 				var pair = encodeURIComponent( key );
 				if ( null !== value ) {
 					pair += '=' + encodeURIComponent( value );
 				}
-				pair = pair.replace( /%5B/g, '[' ).replace( /%5D/g, ']' );
+				pair = pair.replace( /%5B/g, '[' ).replace( /%5D/g, ']' ).replace( /%2F/g, '/' ).replace( /%3A/g, ':' );
 				return pair;
 			} ).join( '&' );
 
-			if ( newQueryParams.url !== oldQueryParams.url ) {
-				history.pushState( newQueryParams, '', urlParser.href );
+			urlChanged = ( newQueryParams.url ) !== ( oldQueryParams.url || component.defaultQueryParamValues.url );
+
+			// Send the state to the parent window.
+			if ( urlChanged ) {
+				history.pushState( {}, '', urlParser.href );
 			} else {
-				history.replaceState( newQueryParams, '', urlParser.href );
+				history.replaceState( {}, '', urlParser.href );
 			}
+			component.previousQueryParams = newQueryParams;
 		}
 	} );
 
 	/**
 	 * On history popstate, set the URL to match.
 	 *
-	 * @param {jQuery.Event} event Event.
+	 * @param {object} queryParams Query params.
 	 * @returns {void}
 	 */
-	component.onPopState = function onPopState( event ) {
+	component.updatePreviewUrl = function updatePreviewUrl( queryParams ) {
 		var url = null;
 
 		// Preserve the old scroll position.
-		if ( event.originalEvent.state && event.originalEvent.state.scroll ) {
-			api.previewer.scroll = event.originalEvent.state.scroll;
+		if ( queryParams.scroll ) {
+			api.previewer.scroll = queryParams.scroll;
 		} else {
 			api.previewer.scroll = 0;
 		}
 
 		// Update the url.
-		if ( event.originalEvent.state && event.originalEvent.state.url ) {
-			url = event.originalEvent.state.url;
+		if ( queryParams.url ) {
+			url = queryParams.url;
 		} else {
 			url = api.settings.url.preview; // On pop to initial state, the state is null.
 		}
@@ -157,11 +201,12 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 */
 	component.watchExpandedChange = function watchExpandedChange( construct ) {
 		if ( construct.active ) {
-			construct.active.bind( component.updateState );
+			construct.active.bind( component.updateWindowLocation );
 		}
 		if ( construct.expanded ) {
-			construct.expanded.bind( component.updateState );
+			construct.expanded.bind( component.updateWindowLocation );
 		}
+		component.updateWindowLocation();
 	};
 
 	/**
@@ -170,58 +215,69 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 * @param {wp.customize.Panel|wp.customize.Section|wp.customize.Control} construct Construct.
 	 * @returns {void}
 	 */
-	component.unwatchExpandedChange = function watchExpandedChange( construct ) {
+	component.unwatchExpandedChange = function unwatchExpandedChange( construct ) {
 		if ( construct.active ) {
-			construct.active.unbind( component.updateState );
+			construct.active.unbind( component.updateWindowLocation );
 		}
 		if ( construct.expanded ) {
-			construct.expanded.unbind( component.updateState );
+			construct.expanded.unbind( component.updateWindowLocation );
 		}
+
+		// Because 'remove' event is triggered before the construct is removed. See #37269.
+		_.delay( function() {
+			component.updateWindowLocation();
+		} );
 	};
 
 	/**
-	 * Find default previewed device.
+	 * Update window.location to sync with customizer state.
 	 *
-	 * @returns {string} Device.
+	 * @returns {void}
 	 */
-	component.findDefaultPreviewedDevice = function findDefaultPreviewedDevice() {
-		var defaultPreviewedDevice = null;
-		_.find( api.settings.previewableDevices, function checkDefaultPreviewedDevice( params, device ) {
-			if ( true === params['default'] ) {
-				defaultPreviewedDevice = device;
-				return true;
-			}
-			return false;
-		} );
-		return defaultPreviewedDevice;
-	};
+	component.startUpdatingWindowLocation = function startUpdatingWindowLocation() {
+		var currentQueryParams = component.getQueryParams( location.href );
 
-	api.bind( 'ready', function onCustomizeReady() {
-		var currentQueryParams;
-
-		// Short-circuit if not supported.
-		if ( ! history.replaceState || ! history.pushState ) {
-			return;
-		}
-
-		currentQueryParams = component.getQueryParams( location.href );
-
-		component.defaultPreviewedDevice = component.findDefaultPreviewedDevice();
 		if ( currentQueryParams.scroll ) {
 			component.previewScrollPosition.set( currentQueryParams.scroll );
 			api.previewer.scroll = component.previewScrollPosition.get();
 		}
 
 		component.defaultQueryParamValues = {
-			device: component.defaultPreviewedDevice,
-			scroll: 0,
-			url: api.settings.url.home,
+			'device': (function() {
+				var defaultPreviewedDevice = null;
+				_.find( api.settings.previewableDevices, function checkDefaultPreviewedDevice( params, device ) {
+					if ( true === params['default'] ) {
+						defaultPreviewedDevice = device;
+						return true;
+					}
+					return false;
+				} );
+				return defaultPreviewedDevice;
+			} )(),
+			'scroll': 0,
+			'url': api.settings.url.preview,
 			'autofocus[panel]': '',
 			'autofocus[section]': '',
 			'autofocus[control]': ''
 		};
 
-		$( window ).on( 'popstate', component.onPopState );
+		component.previousQueryParams = _.extend( {}, currentQueryParams );
+
+		$( window ).on( 'popstate', function onPopState( event ) {
+			var urlParser, queryParams;
+			urlParser = document.createElement( 'a' );
+			urlParser.href = location.href;
+			queryParams = component.parseQueryString( urlParser.search.substr( 1 ) );
+
+			component.updatePreviewUrl( queryParams );
+
+			// Make sure the current changeset_uuid is in the URL.
+			if ( queryParams.changeset_uuid !== api.settings.changeset.uuid ) {
+				queryParams.changeset_uuid = api.settings.changeset.uuid;
+				urlParser.search = $.param( queryParams ).replace( /%5B/g, '[' ).replace( /%5D/g, ']' ).replace( /%2F/g, '/' ).replace( /%3A/g, ':' );
+				history.replaceState( event.originalEvent.state, '', urlParser.href );
+			}
+		} );
 
 		component.expandedPanel.set( api.settings.autofocus.panel || '' );
 		component.expandedSection.set( api.settings.autofocus.section || '' );
@@ -235,14 +291,31 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		api.section.bind( 'add', component.watchExpandedChange );
 		api.panel.bind( 'add', component.watchExpandedChange );
 
-		api.control.bind( 'remove', component.watchExpandedChange );
-		api.section.bind( 'remove', component.watchExpandedChange );
-		api.panel.bind( 'remove', component.watchExpandedChange );
+		api.control.bind( 'remove', component.unwatchExpandedChange );
+		api.section.bind( 'remove', component.unwatchExpandedChange );
+		api.panel.bind( 'remove', component.unwatchExpandedChange );
 
-		api.previewedDevice.bind( component.updateState );
-		api.previewer.previewUrl.bind( component.updateState );
-		api.previewer.bind( 'scroll', component.updateState );
-		component.previewScrollPosition.bind( component.updateState );
+		api.previewedDevice.bind( component.updateWindowLocation );
+		api.previewer.previewUrl.bind( component.updateWindowLocation );
+		api.previewer.bind( 'scroll', component.updateWindowLocation );
+		component.previewScrollPosition.bind( component.updateWindowLocation );
+		api.state( 'saved' ).bind( component.updateWindowLocation );
+
+		component.updateWindowLocation();
+	};
+
+	api.bind( 'ready', function onCustomizeReady() {
+
+		// Short-circuit if not supported or if using customize-loader.
+		if ( ! history.replaceState || ! history.pushState || top !== window ) {
+			return;
+		}
+
+		/*
+		 * Start syncing state once the preview loads so that the active panels/sections/controls
+		 * have been set to prevent the URL from being momentarily having autofocus params removed.
+		 */
+		api.previewer.deferred.active.done( component.startUpdatingWindowLocation );
 	} );
 
 	return component;
