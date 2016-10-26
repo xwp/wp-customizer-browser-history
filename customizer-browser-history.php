@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Customizer Browser History
- * Version: 0.4.1
+ * Version: 0.4.2
  * Description: Keep Customizer URL updated with current previewed URL as url param and current expanded panel/section/control as autofocus param. This allows for bookmarking and also the ability to reload and return go the same view. This is a feature plugin for <a href="https://core.trac.wordpress.org/ticket/28536">#28536</a> and it works best with the <a href="https://github.com/xwp/wp-customize-snapshots">Customize Snapshots</a> plugin.
  * Plugin URI: https://github.com/xwp/wp-customizer-browser-history
  * Author: Weston Ruter
@@ -31,7 +31,7 @@
  * Register and enqueue customizer scripts.
  */
 function customizer_browser_history_enqueue_scripts() {
-	$handle = 'customizer-browser-history-controls';
+	$handle = 'customizer-browser-history';
 	$src = plugin_dir_url( __FILE__ ) . '/customizer-browser-history.js';
 	$deps = array( 'customize-controls' );
 	$ver = false;
