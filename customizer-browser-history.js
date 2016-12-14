@@ -240,6 +240,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		if ( currentQueryParams.scroll ) {
 			component.previewScrollPosition.set( currentQueryParams.scroll );
 			api.previewer.scroll = component.previewScrollPosition.get();
+			api.previewer.send( 'scroll', component.previewScrollPosition.get() );
 		}
 
 		component.defaultQueryParamValues = {
