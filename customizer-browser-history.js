@@ -129,6 +129,14 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			}
 		} );
 
+		// There can only be one. Well, there should be. Let presence control override section, and section override panel.
+		if ( newQueryParams['autofocus[section]'] ) {
+			delete newQueryParams['autofocus[panel]'];
+		}
+		if ( newQueryParams['autofocus[control]'] ) {
+			delete newQueryParams['autofocus[section]'];
+		}
+
 		// Set the changeset_uuid query param.
 		changesetStatus = api.state( 'changesetStatus' ).get();
 		if ( '' !== changesetStatus && 'publish' !== changesetStatus ) {
