@@ -3,7 +3,7 @@ Contributors:      xwp, westonruter
 Tags:              customizer, customize
 Requires at least: 4.5.0
 Tested up to:      4.7.0
-Stable tag:        0.4.3
+Stable tag:        0.4.4
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,10 @@ http://example.com/wp-admin/customize.php?url=http%3A%2F%2Fexample.com%2Fsample-
 **Development of this plugin is done [on GitHub](https://github.com/xwp/wp-customizer-browser-history). Pull requests welcome. Please see [issues](https://github.com/xwp/wp-customizer-browser-history/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/customizer-browser-history).**
 
 == Changelog ==
+
+= 0.4.4 =
+
+Only include one `autofocus` param. If `autofocus[control]` is present, skip including `autofocus[section]` (since implied). Likewise, if `autofocus[section]` is present, also exclude its containing `autofocus[panel]` since it is also implied. By only including one `autofocus` param the URL bar is less cluttered, but also an issue is fixed where focus may not reliably be added due to apparent inconsistencies in which construct is autofocused first (the control should really be the last to get focus).
 
 = 0.4.3 =
 
