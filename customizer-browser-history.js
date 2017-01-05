@@ -139,7 +139,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 
 		// Set the changeset_uuid query param.
 		changesetStatus = api.state( 'changesetStatus' ).get();
-		if ( '' !== changesetStatus && 'publish' !== changesetStatus ) {
+		if ( ! api.state( 'saved' ).get() || ( '' !== changesetStatus && 'publish' !== changesetStatus ) ) {
 			newQueryParams.changeset_uuid = api.settings.changeset.uuid;
 		} else {
 			delete newQueryParams.changeset_uuid;
