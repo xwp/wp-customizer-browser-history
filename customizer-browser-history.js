@@ -137,12 +137,14 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			delete newQueryParams['autofocus[section]'];
 		}
 
-		// Set the changeset_uuid query param.
-		changesetStatus = api.state( 'changesetStatus' ).get();
-		if ( ! api.state( 'saved' ).get() || ( '' !== changesetStatus && 'publish' !== changesetStatus ) ) {
-			newQueryParams.changeset_uuid = api.settings.changeset.uuid;
-		} else {
-			delete newQueryParams.changeset_uuid;
+		// Set the changeset_uuid query param (if changesets are available).
+		if ( api.state( 'changesetStatus' ) ) {
+			changesetStatus = api.state( 'changesetStatus' ).get();
+			if ( ! api.state( 'saved' ).get() || ( '' !== changesetStatus && 'publish' !== changesetStatus ) ) {
+				newQueryParams.changeset_uuid = api.settings.changeset.uuid;
+			} else {
+				delete newQueryParams.changeset_uuid;
+			}
 		}
 
 		if ( ! _.isEqual( newQueryParams, oldQueryParams ) ) {
@@ -280,8 +282,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 
 			component.updatePreviewUrl( queryParams );
 
-			// Make sure the current changeset_uuid is in the URL.
-			if ( queryParams.changeset_uuid !== api.settings.changeset.uuid ) {
+			// Make sure the current changeset_uuid is in the URL (if changesets are available).
+			if ( api.settings.changeset && queryParams.changeset_uuid !== api.settings.changeset.uuid ) {
 				queryParams.changeset_uuid = api.settings.changeset.uuid;
 				urlParser.search = $.param( queryParams ).replace( /%5B/g, '[' ).replace( /%5D/g, ']' ).replace( /%2F/g, '/' ).replace( /%3A/g, ':' );
 				history.replaceState( event.originalEvent.state, '', urlParser.href );
