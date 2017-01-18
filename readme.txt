@@ -1,7 +1,7 @@
 === Customizer Browser History ===
 Contributors:      xwp, westonruter
 Tags:              customizer, customize
-Requires at least: 4.5.0
+Requires at least: 4.6.0
 Tested up to:      4.7.1
 Stable tag:        0.4.5
 License:           GPLv2 or later
