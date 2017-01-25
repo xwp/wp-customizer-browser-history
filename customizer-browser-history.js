@@ -266,7 +266,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 				return defaultPreviewedDevice;
 			} )(),
 			'scroll': 0,
-			'url': api.settings.url.preview,
+			'url': api.settings.url.home,
 			'autofocus[panel]': '',
 			'autofocus[section]': '',
 			'autofocus[control]': ''
