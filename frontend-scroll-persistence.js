@@ -2,7 +2,8 @@
 /* eslint no-magic-numbers: ["error", { "ignore": [0,1] }] */
 jQuery( function( $ ) {
 	'use strict';
-	var customizeLink, $window, updateScrollParam;
+	var customizeLink, $window, updateScrollParam, adminBarHeight;
+	adminBarHeight = $( '#wpadminbar' ).height();
 	customizeLink = $( '#wp-admin-bar-customize > a' );
 	$window = $( window );
 
@@ -18,7 +19,7 @@ jQuery( function( $ ) {
 		if ( query.length > 0 ) {
 			query += '&';
 		}
-		query += 'scroll=' + String( $window.scrollTop() );
+		query += 'scroll=' + String( $window.scrollTop() + adminBarHeight );
 
 		// Update query string.
 		customizeLink.prop( 'search', query );
