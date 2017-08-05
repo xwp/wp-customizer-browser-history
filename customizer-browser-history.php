@@ -28,16 +28,32 @@
  */
 
 /**
- * Register and enqueue customizer scripts.
+ * Register and enqueue customizer controls scripts.
  */
-function customizer_browser_history_enqueue_scripts() {
-	$handle = 'customizer-browser-history';
-	$src = plugin_dir_url( __FILE__ ) . '/customizer-browser-history.js';
+function customizer_browser_history_enqueue_controls_scripts() {
+	$handle = 'customizer-browser-history-customize-controls';
+	$src = plugin_dir_url( __FILE__ ) . '/customize-controls.js';
 	$deps = array( 'customize-controls' );
 	$ver = false;
 	wp_enqueue_script( $handle, $src, $deps, $ver );
 }
-add_action( 'customize_controls_enqueue_scripts', 'customizer_browser_history_enqueue_scripts' );
+add_action( 'customize_controls_enqueue_scripts', 'customizer_browser_history_enqueue_controls_scripts' );
+
+/**
+ * Register and enqueue non-preview frontend scripts.
+ */
+function customizer_browser_history_enqueue_frontend_scripts() {
+	if ( is_customize_preview() || ! is_user_logged_in() || ! is_admin_bar_showing() || ! current_user_can( 'customize' ) ) {
+		return;
+	}
+
+	$handle = '/customizer-browser-history-frontend-scroll-persistence';
+	$src = plugin_dir_url( __FILE__ ) . '/frontend-scroll-persistence.js';
+	$deps = array( 'jquery', 'underscore' );
+	$ver = false;
+	wp_enqueue_script( $handle, $src, $deps, $ver );
+}
+add_action( 'wp_enqueue_scripts', 'customizer_browser_history_enqueue_frontend_scripts' );
 
 /**
  * Filter the available devices to change default based on device query param.
