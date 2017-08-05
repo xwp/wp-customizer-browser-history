@@ -3,12 +3,7 @@
 jQuery( function( $ ) {
 	'use strict';
 	var customizeLink, $window, updateScrollParam;
-
 	customizeLink = $( '#wp-admin-bar-customize > a' );
-	if ( ! customizeLink.length ) {
-		return;
-	}
-
 	$window = $( window );
 
 	updateScrollParam = function() {

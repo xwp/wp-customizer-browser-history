@@ -43,7 +43,7 @@ add_action( 'customize_controls_enqueue_scripts', 'customizer_browser_history_en
  * Register and enqueue non-preview frontend scripts.
  */
 function customizer_browser_history_enqueue_frontend_scripts() {
-	if ( is_customize_preview() || ! is_user_logged_in() || ! is_admin_bar_showing() || ! current_user_can( 'customize' ) ) {
+	if ( ! is_user_logged_in() || ! is_admin_bar_showing() || ! current_user_can( 'customize' ) ) {
 		return;
 	}
 
