@@ -1,6 +1,6 @@
 /* global wp */
 /* exported CustomizerBrowserHistory */
-/* eslint no-magic-numbers: ["error", { "ignore": [0,1,2,10] }] */
+/* eslint no-magic-numbers: ["error", { "ignore": [-1,0,1,2,10] }] */
 /* eslint complexity: ["error", 8] */
 
 var CustomizerBrowserHistory = (function( api, $ ) {
@@ -316,10 +316,32 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	};
 
 	api.bind( 'ready', function onCustomizeReady() {
+		var closeLink = $( '.customize-controls-close' ), rememberScrollPosition;
 
 		// Short-circuit if not supported or if using customize-loader.
 		if ( ! history.replaceState || ! history.pushState || top !== window ) {
 			return;
+		}
+
+		rememberScrollPosition = function() {
+			sessionStorage.setItem( 'lastCustomizerScrollPosition', api.previewer.scroll );
+		};
+
+		// Update close link URL to be preview URL and remember scoll position if close link is not back to WP Admin.
+		if ( -1 === closeLink.prop( 'pathname' ).indexOf( '/wp-admin/' ) ) {
+
+			// Sync the preview URL to the close button so the URL navigated to upon closing is the last URL which was previewed.
+			api.previewer.previewUrl.bind( function( newPreviewUrl ) {
+				var urlParser = document.createElement( 'a' );
+				urlParser.href = newPreviewUrl;
+
+				// Only copy the path and query vars since the frontend URL may have a different domain.
+				closeLink.prop( 'pathname', urlParser.pathname );
+				closeLink.prop( 'search', urlParser.search );
+			});
+
+			// Remember scroll position if we're going back to the frontend.
+			closeLink.on( 'click', rememberScrollPosition );
 		}
 
 		/*

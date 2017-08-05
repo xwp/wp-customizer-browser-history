@@ -2,8 +2,7 @@
 /* eslint no-magic-numbers: ["error", { "ignore": [0,1] }] */
 jQuery( function( $ ) {
 	'use strict';
-	var customizeLink, $window, updateScrollParam, adminBarHeight;
-	adminBarHeight = $( '#wpadminbar' ).height();
+	var customizeLink, $window, updateScrollParam;
 	customizeLink = $( '#wp-admin-bar-customize > a' );
 	$window = $( window );
 
@@ -19,11 +18,17 @@ jQuery( function( $ ) {
 		if ( query.length > 0 ) {
 			query += '&';
 		}
-		query += 'scroll=' + String( $window.scrollTop() + adminBarHeight );
+		query += 'scroll=' + String( $window.scrollTop() );
 
 		// Update query string.
 		customizeLink.prop( 'search', query );
 	};
+
+	// Restore the scroll position the user was last at in the Customizer preview.
+	if ( 'undefined' !== typeof sessionStorage && sessionStorage.getItem( 'lastCustomizerScrollPosition' ) ) {
+		$window.scrollTop( parseInt( sessionStorage.getItem( 'lastCustomizerScrollPosition' ), 10 ) );
+		sessionStorage.removeItem( 'lastCustomizerScrollPosition' );
+	}
 
 	customizeLink.on( 'mouseover mousedown click', updateScrollParam );
 });
