@@ -315,7 +315,12 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		component.updateWindowLocation();
 	};
 
-	api.bind( 'ready', function onCustomizeReady() {
+	/**
+	 * Set up functionality.
+	 *
+	 * @returns {void}
+	 */
+	component.ready = function ready() {
 		var closeLink = $( '.customize-controls-close' ), rememberScrollPosition;
 
 		// Short-circuit if not supported or if using customize-loader.
@@ -349,8 +354,16 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		 * have been set to prevent the URL from being momentarily having autofocus params removed.
 		 */
 		api.previewer.deferred.active.done( component.startUpdatingWindowLocation );
-	} );
+	};
+
+	/**
+	 * Initialize component.
+	 *
+	 * @returns {void}
+	 */
+	component.init = function init() {
+		api.bind( 'ready', component.ready );
+	};
 
 	return component;
-
 })( wp.customize, jQuery );

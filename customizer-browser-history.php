@@ -32,10 +32,12 @@
  */
 function customizer_browser_history_enqueue_controls_scripts() {
 	$handle = 'customizer-browser-history-customize-controls';
-	$src = plugin_dir_url( __FILE__ ) . '/customize-controls.js';
+	$src = plugin_dir_url( __FILE__ ) . 'customize-controls.js';
 	$deps = array( 'customize-controls' );
 	$ver = false;
 	wp_enqueue_script( $handle, $src, $deps, $ver );
+
+	wp_add_inline_script( $handle, 'CustomizerBrowserHistory.init();' );
 }
 add_action( 'customize_controls_enqueue_scripts', 'customizer_browser_history_enqueue_controls_scripts' );
 
@@ -48,10 +50,12 @@ function customizer_browser_history_enqueue_frontend_scripts() {
 	}
 
 	$handle = '/customizer-browser-history-frontend-scroll-persistence';
-	$src = plugin_dir_url( __FILE__ ) . '/frontend-scroll-persistence.js';
+	$src = plugin_dir_url( __FILE__ ) . 'frontend-scroll-persistence.js';
 	$deps = array( 'jquery', 'underscore' );
 	$ver = false;
 	wp_enqueue_script( $handle, $src, $deps, $ver );
+
+	wp_add_inline_script( $handle, 'CustomizerBrowserHistoryFrontendScrollPersistence.init();' );
 }
 add_action( 'wp_enqueue_scripts', 'customizer_browser_history_enqueue_frontend_scripts' );
 

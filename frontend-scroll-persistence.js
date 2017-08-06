@@ -1,13 +1,19 @@
 /* global _ */
 /* eslint no-magic-numbers: ["error", { "ignore": [0,1] }] */
-jQuery( function( $ ) {
-	'use strict';
-	var customizeLink, $window, updateScrollParam;
-	customizeLink = $( '#wp-admin-bar-customize > a' );
-	$window = $( window );
+/* exported CustomizerBrowserHistoryFrontendScrollPersistence */
 
-	updateScrollParam = function() {
-		var query = customizeLink.prop( 'search' ).substr( 1 );
+var CustomizerBrowserHistoryFrontendScrollPersistence = (function( $ ) {
+	'use strict';
+
+	var component = {};
+
+	/**
+	 * Update scroll param.
+	 *
+	 * @returns {void}
+	 */
+	component.updateScrollParam = function updateScrollParam() {
+		var query = $( this ).prop( 'search' ).substr( 1 );
 
 		// Remove existing scroll param.
 		query = _.filter( query.split( /&/ ), function( pair ) {
@@ -18,17 +24,44 @@ jQuery( function( $ ) {
 		if ( query.length > 0 ) {
 			query += '&';
 		}
-		query += 'scroll=' + String( $window.scrollTop() );
+		query += 'scroll=' + String( $( window ).scrollTop() );
 
 		// Update query string.
-		customizeLink.prop( 'search', query );
+		$( this ).prop( 'search', query );
 	};
 
-	// Restore the scroll position the user was last at in the Customizer preview.
-	if ( 'undefined' !== typeof sessionStorage && sessionStorage.getItem( 'lastCustomizerScrollPosition' ) ) {
-		$window.scrollTop( parseInt( sessionStorage.getItem( 'lastCustomizerScrollPosition' ), 10 ) );
-		sessionStorage.removeItem( 'lastCustomizerScrollPosition' );
-	}
+	/**
+	 * Restore the scroll position the user was last at in the Customizer preview.
+	 *
+	 * @returns {void}
+	 */
+	component.restoreScrollPosition = function restoreScrollPosition() {
+		if ( 'undefined' !== typeof sessionStorage && sessionStorage.getItem( 'lastCustomizerScrollPosition' ) ) {
+			$( window ).scrollTop( parseInt( sessionStorage.getItem( 'lastCustomizerScrollPosition' ), 10 ) );
+			sessionStorage.removeItem( 'lastCustomizerScrollPosition' );
+		}
+	};
 
-	customizeLink.on( 'mouseover mousedown click', updateScrollParam );
-});
+	/**
+	 * Set up functionality.
+	 *
+	 * @returns {void}
+	 */
+	component.ready = function ready() {
+		component.restoreScrollPosition();
+
+		$( '#wp-admin-bar-customize > a' ).on( 'mouseover mousedown click', component.updateScrollParam );
+	};
+
+	/**
+	 * Initialize.
+	 *
+	 * @returns {void}
+	 */
+	component.init = function init() {
+		$( component.ready );
+	};
+
+	return component;
+})( jQuery );
+
