@@ -37,6 +37,10 @@ Note that the `url` param will be URL-encoded. So a typical Customizer URL would
 http://example.com/wp-admin/customize.php?url=http%3A%2F%2Fexample.com%2Fsample-page%2F&autofocus[panel]=widgets&autofocus[section]=sidebar-widgets-sidebar-1&autofocus[control]=widget_text[10]&device=mobile&scroll=200
 </pre>
 
+The plugin will also persist the scroll position from the frontend to preview frame in the Customizer after clicking the “Customize” link in the frontend admin bar. This ensures you can quickly start editing whatever you were looking at the moment you clicked Customize, and it makes the Customizer load from the frontend in a more seamless way.
+
+Additionally, as you navigate around the Customizer preview, the close link in the Customizer controls pane will keep updating to point to the same URL that you are previewing, along with persisting the scroll position. In this way, whenever you close the Customizer via this link the user experience is that the Customizer sidebar is just removed, similar to as if they clicked the “Hide Controls” link at the bottom of the sidebar. This behavior is only active if the user had clicked the Customize link from the frontend. If they clicked Customize from the admin, then the Close link will remain linking back to the admin page they came from. Note that for responsive themes like Twenty Seventeen, the synced scroll position between the frontend and backend won't always appear seamless since the Customizer controls panel being expanded causes the element dimensions in the preview to change.
+
 **Development of this plugin is done [on GitHub](https://github.com/xwp/wp-customizer-browser-history). Pull requests welcome. Please see [issues](https://github.com/xwp/wp-customizer-browser-history/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/customizer-browser-history).**
 
 ## Changelog ##
