@@ -8,7 +8,7 @@ Sync browser URL in Customizer with current preview URL and focused panels, sect
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [customize](https://wordpress.org/plugins/tags/customize)  
 **Requires at least:** 4.6.0  
 **Tested up to:** 4.9-alpha  
-**Stable tag:** 0.5.0  
+**Stable tag:** 0.5.1  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
 [![Build Status](https://travis-ci.org/xwp/wp-customizer-browser-history.svg?branch=master)](https://travis-ci.org/xwp/wp-customizer-browser-history) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
@@ -44,6 +44,9 @@ Additionally, as you navigate around the Customizer preview, the close link in t
 **Development of this plugin is done [on GitHub](https://github.com/xwp/wp-customizer-browser-history). Pull requests welcome. Please see [issues](https://github.com/xwp/wp-customizer-browser-history/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/customizer-browser-history).**
 
 ## Changelog ##
+
+### 0.5.1 ###
+Fix reference to `package.json` which is not included in build.
 
 ### 0.5.0 ###
 Persist scroll position and previewed URL between frontend and customizer preview. See [#20](https://github.com/xwp/wp-customizer-browser-history/pull/20).
