@@ -78,7 +78,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 * @returns {void}
 	 */
 	component.updateWindowLocation = _.debounce( function updateWindowLocation() {
-		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, setQueryParams, urlChanged, changesetStatus;
+		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, setQueryParams, urlChanged = false;
 
 		api.panel.each( function( panel ) {
 			if ( panel.active() && panel.expanded() ) {
@@ -137,16 +137,6 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			delete newQueryParams['autofocus[section]'];
 		}
 
-		// Set the changeset_uuid query param (if changesets are available).
-		if ( api.state( 'changesetStatus' ) ) {
-			changesetStatus = api.state( 'changesetStatus' ).get();
-			if ( ! api.state( 'saved' ).get() || ( '' !== changesetStatus && 'publish' !== changesetStatus ) ) {
-				newQueryParams.changeset_uuid = api.settings.changeset.uuid;
-			} else {
-				delete newQueryParams.changeset_uuid;
-			}
-		}
-
 		if ( ! _.isEqual( newQueryParams, oldQueryParams ) ) {
 			setQueryParams = {};
 			_.each( newQueryParams, function( value, key ) {
@@ -166,7 +156,9 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 				return pair;
 			} ).join( '&' );
 
-			urlChanged = ( newQueryParams.url ) !== ( oldQueryParams.url || component.defaultQueryParamValues.url );
+			if ( newQueryParams.url !== ( oldQueryParams.url || component.defaultQueryParamValues.url ) ) {
+				urlChanged = true;
+			}
 
 			// Send the state to the parent window.
 			if ( urlChanged ) {
@@ -310,7 +302,6 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		api.previewer.previewUrl.bind( component.updateWindowLocation );
 		api.previewer.bind( 'scroll', component.updateWindowLocation );
 		component.previewScrollPosition.bind( component.updateWindowLocation );
-		api.state( 'saved' ).bind( component.updateWindowLocation );
 
 		component.updateWindowLocation();
 	};
