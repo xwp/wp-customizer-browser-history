@@ -141,6 +141,17 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			delete newQueryParams['autofocus[section]'];
 		}
 
+		// Delete the section if its parent panel is not expanded.
+		if (
+			component.expandedSection.get() &&
+			api.section.has( component.expandedSection.get() ) &&
+			api.section( component.expandedSection.get() ).panel() &&
+			api.panel.has( api.section( component.expandedSection.get() ).panel() ) &&
+			! api.panel( api.section( component.expandedSection.get() ).panel() ).expanded()
+		) {
+			delete newQueryParams['autofocus[section]'];
+		}
+
 		if ( ! _.isEqual( newQueryParams, oldQueryParams ) ) {
 			setQueryParams = {};
 			_.each( newQueryParams, function( value, key ) {
