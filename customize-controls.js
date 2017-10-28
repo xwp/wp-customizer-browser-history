@@ -129,11 +129,15 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			}
 		} );
 
-		// There can only be one. Well, there should be. Let presence control override section, and section override panel.
-		if ( newQueryParams['autofocus[section]'] ) {
+		/*
+		 * There can only be one. Well, there should be. Let presence control override section,
+		 * and section override panel. But if something was not registered in PHP, then include
+		 * the autofocus parameter for its parent as it is likely lazy-loaded upon parent expanded.
+		 */
+		if ( newQueryParams['autofocus[section]'] && ! _.isUndefined( api.settings.sections[ newQueryParams['autofocus[section]'] ] ) ) {
 			delete newQueryParams['autofocus[panel]'];
 		}
-		if ( newQueryParams['autofocus[control]'] ) {
+		if ( newQueryParams['autofocus[control]'] && ! _.isUndefined( api.settings.sections[ newQueryParams['autofocus[control]'] ] ) ) {
 			delete newQueryParams['autofocus[section]'];
 		}
 
