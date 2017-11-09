@@ -16,35 +16,6 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	};
 
 	/**
-	 * Parse query string.
-	 *
-	 * @since 4.7.0
-	 * @access public
-	 *
-	 * @param {string} queryString Query string.
-	 * @returns {object} Parsed query string.
-	 */
-	component.parseQueryString = api.utils.parseQueryString || function( queryString ) {
-		var queryParams = {};
-		_.each( queryString.split( '&' ), function( pair ) {
-			var parts, key, value;
-			parts = pair.split( '=', 2 );
-			if ( ! parts[0] ) {
-				return;
-			}
-			key = decodeURIComponent( parts[0].replace( /\+/g, ' ' ) );
-			key = key.replace( / /g, '_' ); // What PHP does.
-			if ( _.isUndefined( parts[1] ) ) {
-				value = null;
-			} else {
-				value = decodeURIComponent( parts[1].replace( /\+/g, ' ' ) );
-			}
-			queryParams[ key ] = value;
-		} );
-		return queryParams;
-	};
-
-	/**
 	 * Get current query params.
 	 *
 	 * @param {string} url URL.
@@ -58,7 +29,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 
 		queryString = urlParser.search.substr( 1 );
 		if ( queryString ) {
-			queryParams = component.parseQueryString( queryString );
+			queryParams = api.utils.parseQueryString( queryString );
 		}
 
 		// Cast scroll to integer.
@@ -285,7 +256,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			var urlParser, queryParams;
 			urlParser = document.createElement( 'a' );
 			urlParser.href = location.href;
-			queryParams = component.parseQueryString( urlParser.search.substr( 1 ) );
+			queryParams = api.utils.parseQueryString( urlParser.search.substr( 1 ) );
 
 			component.updatePreviewUrl( queryParams );
 
