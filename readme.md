@@ -6,9 +6,9 @@ Sync browser URL in Customizer with current preview URL and focused panels, sect
 
 **Contributors:** [xwp](https://profiles.wordpress.org/xwp), [westonruter](https://profiles.wordpress.org/westonruter)  
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [customize](https://wordpress.org/plugins/tags/customize)  
-**Requires at least:** 4.6.0  
-**Tested up to:** 4.9-alpha  
-**Stable tag:** 0.5.1  
+**Requires at least:** 4.7  
+**Tested up to:** 4.9  
+**Stable tag:** 0.5.2  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
 [![Build Status](https://travis-ci.org/xwp/wp-customizer-browser-history.svg?branch=master)](https://travis-ci.org/xwp/wp-customizer-browser-history) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
@@ -44,6 +44,11 @@ Additionally, as you navigate around the Customizer preview, the close link in t
 **Development of this plugin is done [on GitHub](https://github.com/xwp/wp-customizer-browser-history). Pull requests welcome. Please see [issues](https://github.com/xwp/wp-customizer-browser-history/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/customizer-browser-history).**
 
 ## Changelog ##
+
+### 0.5.2 ###
+* Remove code now irrelevant as of WordPress 4.7.
+* Bump minimum WordPress requirement to 4.7.
+* Bump tested to 4.9.
 
 ### 0.5.1 ###
 Fix reference to `package.json` which is not included in build.

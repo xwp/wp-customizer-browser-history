@@ -1,9 +1,9 @@
 === Customizer Browser History ===
 Contributors:      xwp, westonruter
 Tags:              customizer, customize
-Requires at least: 4.6.0
-Tested up to:      4.9-alpha
-Stable tag:        0.5.1
+Requires at least: 4.7
+Tested up to:      4.9
+Stable tag:        0.5.2
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,6 +40,12 @@ Additionally, as you navigate around the Customizer preview, the close link in t
 **Development of this plugin is done [on GitHub](https://github.com/xwp/wp-customizer-browser-history). Pull requests welcome. Please see [issues](https://github.com/xwp/wp-customizer-browser-history/issues) reported there before going to the [plugin forum](https://wordpress.org/support/plugin/customizer-browser-history).**
 
 == Changelog ==
+
+= 0.5.2 =
+
+* Remove code now irrelevant as of WordPress 4.7.
+* Bump minimum WordPress requirement to 4.7.
+* Bump tested to 4.9.
 
 = 0.5.1 =
 

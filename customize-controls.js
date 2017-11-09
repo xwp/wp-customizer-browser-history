@@ -78,7 +78,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 * @returns {void}
 	 */
 	component.updateWindowLocation = _.debounce( function updateWindowLocation() {
-		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, setQueryParams, urlChanged, changesetStatus;
+		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, setQueryParams, urlChanged = false;
 
 		api.panel.each( function( panel ) {
 			if ( panel.active() && panel.expanded() ) {
@@ -129,22 +129,27 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			}
 		} );
 
-		// There can only be one. Well, there should be. Let presence control override section, and section override panel.
-		if ( newQueryParams['autofocus[section]'] ) {
+		/*
+		 * There can only be one. Well, there should be. Let presence control override section,
+		 * and section override panel. But if something was not registered in PHP, then include
+		 * the autofocus parameter for its parent as it is likely lazy-loaded upon parent expanded.
+		 */
+		if ( newQueryParams['autofocus[section]'] && ! _.isUndefined( api.settings.sections[ newQueryParams['autofocus[section]'] ] ) ) {
 			delete newQueryParams['autofocus[panel]'];
 		}
-		if ( newQueryParams['autofocus[control]'] ) {
+		if ( newQueryParams['autofocus[control]'] && ! _.isUndefined( api.settings.sections[ newQueryParams['autofocus[control]'] ] ) ) {
 			delete newQueryParams['autofocus[section]'];
 		}
 
-		// Set the changeset_uuid query param (if changesets are available).
-		if ( api.state( 'changesetStatus' ) ) {
-			changesetStatus = api.state( 'changesetStatus' ).get();
-			if ( ! api.state( 'saved' ).get() || ( '' !== changesetStatus && 'publish' !== changesetStatus ) ) {
-				newQueryParams.changeset_uuid = api.settings.changeset.uuid;
-			} else {
-				delete newQueryParams.changeset_uuid;
-			}
+		// Delete the section if its parent panel is not expanded.
+		if (
+			component.expandedSection.get() &&
+			api.section.has( component.expandedSection.get() ) &&
+			api.section( component.expandedSection.get() ).panel() &&
+			api.panel.has( api.section( component.expandedSection.get() ).panel() ) &&
+			! api.panel( api.section( component.expandedSection.get() ).panel() ).expanded()
+		) {
+			delete newQueryParams['autofocus[section]'];
 		}
 
 		if ( ! _.isEqual( newQueryParams, oldQueryParams ) ) {
@@ -166,7 +171,9 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 				return pair;
 			} ).join( '&' );
 
-			urlChanged = ( newQueryParams.url ) !== ( oldQueryParams.url || component.defaultQueryParamValues.url );
+			if ( newQueryParams.url !== ( oldQueryParams.url || component.defaultQueryParamValues.url ) ) {
+				urlChanged = true;
+			}
 
 			// Send the state to the parent window.
 			if ( urlChanged ) {
@@ -310,7 +317,6 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		api.previewer.previewUrl.bind( component.updateWindowLocation );
 		api.previewer.bind( 'scroll', component.updateWindowLocation );
 		component.previewScrollPosition.bind( component.updateWindowLocation );
-		api.state( 'saved' ).bind( component.updateWindowLocation );
 
 		component.updateWindowLocation();
 	};
