@@ -16,35 +16,6 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	};
 
 	/**
-	 * Parse query string.
-	 *
-	 * @since 4.7.0
-	 * @access public
-	 *
-	 * @param {string} queryString Query string.
-	 * @returns {object} Parsed query string.
-	 */
-	component.parseQueryString = api.utils.parseQueryString || function( queryString ) {
-		var queryParams = {};
-		_.each( queryString.split( '&' ), function( pair ) {
-			var parts, key, value;
-			parts = pair.split( '=', 2 );
-			if ( ! parts[0] ) {
-				return;
-			}
-			key = decodeURIComponent( parts[0].replace( /\+/g, ' ' ) );
-			key = key.replace( / /g, '_' ); // What PHP does.
-			if ( _.isUndefined( parts[1] ) ) {
-				value = null;
-			} else {
-				value = decodeURIComponent( parts[1].replace( /\+/g, ' ' ) );
-			}
-			queryParams[ key ] = value;
-		} );
-		return queryParams;
-	};
-
-	/**
 	 * Get current query params.
 	 *
 	 * @param {string} url URL.
@@ -58,7 +29,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 
 		queryString = urlParser.search.substr( 1 );
 		if ( queryString ) {
-			queryParams = component.parseQueryString( queryString );
+			queryParams = api.utils.parseQueryString( queryString );
 		}
 
 		// Cast scroll to integer.
@@ -77,7 +48,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 *
 	 * @returns {void}
 	 */
-	component.updateWindowLocation = _.debounce( function updateWindowLocation() {
+	component.updateWindowLocation = _.debounce( function updateWindowLocation() { // eslint-disable-line complexity
 		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, setQueryParams, urlChanged = false;
 
 		api.panel.each( function( panel ) {
@@ -246,6 +217,43 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		} );
 	};
 
+	/*
+	 * Strip out autofocus[section]=installed_themes and autofocus[panel]=themes before redirection.
+	 * The user will not want to see the theme browser after switching a theme.
+	 */
+	if ( api.ThemesPanel ) {
+		api.ThemesPanel.prototype.loadThemePreview = (function( loadThemePreview ) {
+			return function( themeId ) {
+				var panel = this, promise, urlReplaced = false, queryParams, urlParser, originalUrl = location.href;  // eslint-disable-line consistent-this
+
+				// Strip autofocus params from URL when they are for themes panel.
+				if ( panel.expanded() ) {
+					queryParams = component.getQueryParams( originalUrl );
+					delete queryParams['autofocus[panel]'];
+					delete queryParams['autofocus[control]'];
+					delete queryParams['autofocus[section]'];
+					urlParser = document.createElement( 'a' );
+					urlParser.href = location.href;
+					urlParser.search = $.param( queryParams );
+					if ( urlParser.href !== location.href ) {
+						history.replaceState( {}, '', urlParser.href );
+						urlReplaced = true;
+					}
+				}
+
+				promise = loadThemePreview.call( panel, themeId );
+
+				// Restore the original URL when loading of theme fails.
+				promise.fail( function() {
+					if ( urlReplaced ) {
+						history.replaceState( {}, '', originalUrl );
+					}
+				} );
+				return promise;
+			};
+		})( api.ThemesPanel.prototype.loadThemePreview );
+	}
+
 	/**
 	 * Update window.location to sync with customizer state.
 	 *
@@ -285,7 +293,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			var urlParser, queryParams;
 			urlParser = document.createElement( 'a' );
 			urlParser.href = location.href;
-			queryParams = component.parseQueryString( urlParser.search.substr( 1 ) );
+			queryParams = api.utils.parseQueryString( urlParser.search.substr( 1 ) );
 
 			component.updatePreviewUrl( queryParams );
 
