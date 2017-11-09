@@ -48,7 +48,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 *
 	 * @returns {void}
 	 */
-	component.updateWindowLocation = _.debounce( function updateWindowLocation() {
+	component.updateWindowLocation = _.debounce( function updateWindowLocation() { // eslint-disable-line complexity
 		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, setQueryParams, urlChanged = false;
 
 		api.panel.each( function( panel ) {
@@ -216,6 +216,43 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			component.updateWindowLocation();
 		} );
 	};
+
+	/*
+	 * Strip out autofocus[section]=installed_themes and autofocus[panel]=themes before redirection.
+	 * The user will not want to see the theme browser after switching a theme.
+	 */
+	if ( api.ThemesPanel ) {
+		api.ThemesPanel.prototype.loadThemePreview = (function( loadThemePreview ) {
+			return function( themeId ) {
+				var panel = this, promise, urlReplaced = false, queryParams, urlParser, originalUrl = location.href;  // eslint-disable-line consistent-this
+
+				// Strip autofocus params from URL when they are for themes panel.
+				if ( panel.expanded() ) {
+					queryParams = component.getQueryParams( originalUrl );
+					delete queryParams['autofocus[panel]'];
+					delete queryParams['autofocus[control]'];
+					delete queryParams['autofocus[section]'];
+					urlParser = document.createElement( 'a' );
+					urlParser.href = location.href;
+					urlParser.search = $.param( queryParams );
+					if ( urlParser.href !== location.href ) {
+						history.replaceState( {}, '', urlParser.href );
+						urlReplaced = true;
+					}
+				}
+
+				promise = loadThemePreview.call( panel, themeId );
+
+				// Restore the original URL when loading of theme fails.
+				promise.fail( function() {
+					if ( urlReplaced ) {
+						history.replaceState( {}, '', originalUrl );
+					}
+				} );
+				return promise;
+			};
+		})( api.ThemesPanel.prototype.loadThemePreview );
+	}
 
 	/**
 	 * Update window.location to sync with customizer state.

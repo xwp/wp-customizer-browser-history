@@ -46,6 +46,8 @@ Additionally, as you navigate around the Customizer preview, the close link in t
 ## Changelog ##
 
 ### 0.5.2 ###
+* Prevent autofocus params for themes panel and its sections from being included during theme switch. See [#22](https://github.com/xwp/wp-customizer-browser-history/issues/22).
+* Only remove parent construct autofocus params if child is defined statically; ensures that lazy-loaded children can be autofocused.
 * Remove code now irrelevant as of WordPress 4.7.
 * Bump minimum WordPress requirement to 4.7.
 * Bump tested to 4.9.
