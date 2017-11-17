@@ -268,7 +268,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 * @returns {void}
 	 */
 	component.startUpdatingWindowLocation = function startUpdatingWindowLocation() {
-		var currentQueryParams = component.getQueryParams( location.href ), outerSection;
+		var outerSection, outerSectionParam = 'autofocus[outer_section]',
+			currentQueryParams = component.getQueryParams( location.href );
 
 		if ( currentQueryParams.scroll ) {
 			component.previewScrollPosition.set( currentQueryParams.scroll );
@@ -276,8 +277,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			api.previewer.send( 'scroll', component.previewScrollPosition.get() );
 		}
 
-		if ( _.has( currentQueryParams, 'autofocus[outer_section]' ) ) {
-			outerSection = api.section( currentQueryParams[ 'autofocus[outer_section]' ] );
+		if ( _.has( currentQueryParams, outerSectionParam ) && api.section.has( currentQueryParams[ outerSectionParam ] ) ) {
+			outerSection = api.section( currentQueryParams[ outerSectionParam ] );
 			outerSection.deferred.embedded.done( function() {
 				outerSection.focus();
 			} );
@@ -299,8 +300,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			'url': api.settings.url.home,
 			'autofocus[panel]': '',
 			'autofocus[section]': '',
-			'autofocus[control]': '',
-			'autofocus[outer_section]': ''
+			'autofocus[outer_section]': '',
+			'autofocus[control]': ''
 		};
 
 		component.previousQueryParams = _.extend( {}, currentQueryParams );
