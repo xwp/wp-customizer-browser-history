@@ -60,7 +60,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		} );
 		api.section.each( function( section ) {
 			if ( section.active() && section.expanded() ) {
-				if ( 'outer' === section.params.type ) {
+				if ( api.OuterSection && section.extended( api.OuterSection ) ) {
 					expandedOuterSection = section.id;
 				} else {
 					expandedSection = section.id;
