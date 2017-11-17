@@ -268,12 +268,19 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 * @returns {void}
 	 */
 	component.startUpdatingWindowLocation = function startUpdatingWindowLocation() {
-		var currentQueryParams = component.getQueryParams( location.href );
+		var currentQueryParams = component.getQueryParams( location.href ), outerSection;
 
 		if ( currentQueryParams.scroll ) {
 			component.previewScrollPosition.set( currentQueryParams.scroll );
 			api.previewer.scroll = component.previewScrollPosition.get();
 			api.previewer.send( 'scroll', component.previewScrollPosition.get() );
+		}
+
+		if ( _.has( currentQueryParams, 'autofocus[outer_section]' ) ) {
+			outerSection = api.section( currentQueryParams[ 'autofocus[outer_section]' ] );
+			outerSection.deferred.embedded.done( function() {
+				outerSection.focus();
+			} );
 		}
 
 		component.defaultQueryParamValues = {
