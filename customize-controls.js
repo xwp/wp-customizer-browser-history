@@ -11,6 +11,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		previousQueryParams: {},
 		expandedPanel: new api.Value(),
 		expandedSection: new api.Value(),
+		expandedOuterSection: new api.Value(),
 		expandedControl: new api.Value(),
 		previewScrollPosition: new api.Value( 0 )
 	};
@@ -49,7 +50,8 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 * @returns {void}
 	 */
 	component.updateWindowLocation = _.debounce( function updateWindowLocation() { // eslint-disable-line complexity
-		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser, oldQueryParams, newQueryParams, setQueryParams, urlChanged = false;
+		var expandedPanel = '', expandedSection = '', expandedControl = '', values, urlParser,
+			oldQueryParams, newQueryParams, setQueryParams, urlChanged = false, expandedOuterSection = '';
 
 		api.panel.each( function( panel ) {
 			if ( panel.active() && panel.expanded() ) {
@@ -58,7 +60,11 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 		} );
 		api.section.each( function( section ) {
 			if ( section.active() && section.expanded() ) {
-				expandedSection = section.id;
+				if ( api.OuterSection && section.extended( api.OuterSection ) ) {
+					expandedOuterSection = section.id;
+				} else {
+					expandedSection = section.id;
+				}
 			}
 		} );
 		if ( expandedSection ) {
@@ -71,6 +77,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 
 		component.expandedPanel.set( expandedPanel );
 		component.expandedSection.set( expandedSection );
+		component.expandedOuterSection.set( expandedOuterSection );
 		component.expandedControl.set( expandedControl );
 		component.previewScrollPosition.set( api.previewer.scroll );
 
@@ -80,6 +87,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			'url': api.previewer.previewUrl,
 			'autofocus[panel]': component.expandedPanel,
 			'autofocus[section]': component.expandedSection,
+			'autofocus[outer_section]': component.expandedOuterSection,
 			'autofocus[control]': component.expandedControl,
 			'device': api.previewedDevice,
 			'scroll': component.previewScrollPosition
@@ -260,12 +268,20 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 	 * @returns {void}
 	 */
 	component.startUpdatingWindowLocation = function startUpdatingWindowLocation() {
-		var currentQueryParams = component.getQueryParams( location.href );
+		var outerSection, outerSectionParam = 'autofocus[outer_section]',
+			currentQueryParams = component.getQueryParams( location.href );
 
 		if ( currentQueryParams.scroll ) {
 			component.previewScrollPosition.set( currentQueryParams.scroll );
 			api.previewer.scroll = component.previewScrollPosition.get();
 			api.previewer.send( 'scroll', component.previewScrollPosition.get() );
+		}
+
+		if ( _.has( currentQueryParams, outerSectionParam ) && api.section.has( currentQueryParams[ outerSectionParam ] ) ) {
+			outerSection = api.section( currentQueryParams[ outerSectionParam ] );
+			outerSection.deferred.embedded.done( function() {
+				outerSection.focus();
+			} );
 		}
 
 		component.defaultQueryParamValues = {
@@ -284,6 +300,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			'url': api.settings.url.home,
 			'autofocus[panel]': '',
 			'autofocus[section]': '',
+			'autofocus[outer_section]': '',
 			'autofocus[control]': ''
 		};
 
@@ -346,7 +363,7 @@ var CustomizerBrowserHistory = (function( api, $ ) {
 			sessionStorage.setItem( 'lastCustomizerScrollPosition', api.previewer.scroll );
 		};
 
-		// Update close link URL to be preview URL and remember scoll position if close link is not back to WP Admin.
+		// Update close link URL to be preview URL and remember scroll position if close link is not back to WP Admin.
 		if ( -1 === closeLink.prop( 'pathname' ).indexOf( '/wp-admin/' ) ) {
 
 			// Sync the preview URL to the close button so the URL navigated to upon closing is the last URL which was previewed.
